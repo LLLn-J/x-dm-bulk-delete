@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- 商店宣传图（440×280 和 1400×560 共用，按窗口大小缩放）。按商店规范不放文字。
+     由 tools/make_store_assets.py 渲染成 PNG。 -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>promo</title>
+    <style>
+      html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+      body {
+        display: flex; align-items: center; justify-content: center;
+        background: radial-gradient(120% 150% at 12% 8%, #49b8ff 0%, #1d9bf0 32%, #1667dc 68%, #0c3a8f 100%);
+      }
+      .scene { position: relative; height: 80vh; aspect-ratio: 1.6; display: flex; align-items: center; }
+      .card {
+        box-sizing: border-box; width: 70%; height: 100%; padding: 5vh;
+        display: flex; flex-direction: column; justify-content: space-between;
+        background: #fff; border-radius: 6vh; box-shadow: 0 2.5vh 7vh rgba(4, 28, 80, 0.35);
+      }
+      .row { display: flex; align-items: center; gap: 3.4vh; padding: 2.6vh 3vh; border-radius: 3.4vh; }
+      .row.on { background: rgba(29, 155, 240, 0.12); box-shadow: inset 0 0 0 0.7vh rgba(29, 155, 240, 0.6); }
+      .check { position: relative; flex: none; box-sizing: border-box; width: 7.5vh; height: 7.5vh; border-radius: 50%; border: 0.9vh solid #1d9bf0; }
+      .on .check { background: #1d9bf0; }
+      .on .check::after {
+        content: ""; position: absolute; left: 1.9vh; top: 0.55vh; width: 1.7vh; height: 3.6vh;
+        border: solid #fff; border-width: 0 0.9vh 0.9vh 0; transform: rotate(45deg);
+      }
+      .avatar { flex: none; width: 10.5vh; height: 10.5vh; border-radius: 50%; }
+      .lines { flex: 1; display: flex; flex-direction: column; gap: 2vh; }
+      .lines i { display: block; height: 3vh; border-radius: 1.5vh; background: #dfe5e8; }
+      .lines i:first-child { width: 52%; background: #8b98a5; }
+      .lines i:last-child { width: 86%; }
+      .icon { position: absolute; right: 0; bottom: 6%; width: 41%; filter: drop-shadow(0 2.5vh 4vh rgba(4, 28, 80, 0.45)); }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+      <div class="card">
+        <div class="row on"><span class="check"></span><span class="avatar" style="background:#f6c89f"></span><span class="lines"><i></i><i></i></span></div>
+        <div class="row on"><span class="check"></span><span class="avatar" style="background:#9fd8b4"></span><span class="lines"><i></i><i></i></span></div>
+        <div class="row"><span class="check"></span><span class="avatar" style="background:#c4b5f4"></span><span class="lines"><i></i><i></i></span></div>
+      </div>
+      <img class="icon" src="assets/icon-512.png" alt="" />
+    </div>
+  </body>
+</html>

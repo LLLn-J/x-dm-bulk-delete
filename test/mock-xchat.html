@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- 本地测试页：仿 X Chat 的页面结构，并按 manifest 里的顺序加载扩展脚本。
+     data-xbd-force 让面板在非 /i/chat 路径下也显示。用法见 README。 -->
+<html lang="zh-CN" data-xbd-force>
+  <head>
+    <meta charset="utf-8" />
+    <title>Mock X Chat</title>
+    <style>
+      body { margin: 0; background: #fff; } /* 和 x.com 一样给 body 设背景色，面板据此判断深浅色 */
+      html.dim body { background: #15202b; }
+      #mock-status { position: fixed; left: 8px; bottom: 8px; z-index: 10; max-width: 70vw; padding: 4px 10px; border-radius: 6px;
+        background: #fff8c5; color: #3b2300; font: 12px/1.5 ui-monospace, Menlo, monospace; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+    </style>
+  </head>
+  <body>
+    <div id="chat-host"></div>
+    <div id="mock-status"></div>
+    <script src="mock-xchat.js"></script>
+    <script>
+      // 默认按 manifest 顺序加载扩展源码；?userscript 改为加载打包好的油猴脚本；?demo=… 摆出截图用的界面状态
+      const query = new URLSearchParams(location.search);
+      const files = query.has('userscript')
+        ? ['../dist/x-dm-bulk-delete.user.js']
+        : ['labels.js', 'core.js', 'xchat.js', 'ui.js', 'main.js'].map((f) => '../x-dm-bulk-delete/src/' + f);
+      if (query.has('demo')) {
+        files.push('demo.js');
+        document.getElementById('mock-status').hidden = true;
+        // 截图里显示真实版本号；消息截图把面板放到左边，别挡住右侧自己发的消息
+        if (query.get('version')) window.GM_info = { script: { version: query.get('version') } };
+        const panel = query.get('demo') === 'msg' ? { left: 36, top: 96 } : {};
+        localStorage.setItem('xbdSettings', JSON.stringify({ panel }));
+      }
+      for (const src of files) {
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = false;
+        document.body.append(s);
+      }
+    </script>
+  </body>
+</html>

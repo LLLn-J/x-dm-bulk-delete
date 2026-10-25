@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "DM Bulk Delete for X",
+    "description": "Extension name shown in the Chrome Web Store and on chrome://extensions (max 75 characters)"
+  },
+  "extDescription": {
+    "message": "Bulk-delete X (Twitter) DMs: tick messages or whole chats and delete them in one go. Runs locally; no data leaves your device.",
+    "description": "Short description (max 132 characters)"
+  },
+  "actionTitle": {
+    "message": "DM Bulk Delete for X",
+    "description": "Tooltip of the toolbar button"
+  }
+}

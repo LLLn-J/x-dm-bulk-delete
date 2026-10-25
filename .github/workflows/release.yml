@@ -1,0 +1,54 @@
+# 推送 v* 标签时：打包 → 创建 GitHub Release（附商店 zip 和油猴脚本）→ 更新 userscript 分支
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 标签必须和 manifest 里的版本一致
+        run: |
+          version=$(python3 -c "import json; print(json.load(open('x-dm-bulk-delete/manifest.json'))['version'])")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::标签 $GITHUB_REF_NAME 和 manifest.json 里的 v$version 不一致"
+            exit 1
+          fi
+
+      - name: 打包
+        run: python3 tools/build.py
+
+      - name: 创建 GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/build.py --notes > "$RUNNER_TEMP/notes.md"
+          gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md"
+
+      # userscript 分支只放打包好的油猴脚本，地址固定：
+      # 用作 README 里的一键安装链接、脚本的 @updateURL/@downloadURL，以及 Greasy Fork 的同步源
+      - name: 更新 userscript 分支
+        run: |
+          cp dist/x-dm-bulk-delete.user.js dist/x-dm-bulk-delete.meta.js "$RUNNER_TEMP/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth=1 origin userscript; then
+            git checkout -B userscript FETCH_HEAD
+          else
+            git checkout --orphan userscript
+            git rm -rf --quiet .
+          fi
+          cp "$RUNNER_TEMP/x-dm-bulk-delete.user.js" "$RUNNER_TEMP/x-dm-bulk-delete.meta.js" .
+          git add x-dm-bulk-delete.user.js x-dm-bulk-delete.meta.js
+          git diff --cached --quiet || git commit -m "userscript $GITHUB_REF_NAME"
+          git push origin userscript

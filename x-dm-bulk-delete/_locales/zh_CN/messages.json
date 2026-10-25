@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "X 私信批量删除",
+    "description": "扩展名称，Chrome 网上应用店和扩展管理页显示（最多 75 个字符）"
+  },
+  "extDescription": {
+    "message": "在 X（Twitter）私信页面批量勾选并删除单条消息或整个会话。在本机模拟点击 X 自己的菜单完成，数据不会离开你的设备。",
+    "description": "扩展简介（最多 132 个字符）"
+  },
+  "actionTitle": {
+    "message": "X 私信批量删除",
+    "description": "工具栏按钮的悬停提示"
+  }
+}

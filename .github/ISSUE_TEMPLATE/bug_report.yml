@@ -1,0 +1,42 @@
+name: 问题反馈 / Bug report
+description: 面板不出现、删除失败、勾选不对等问题
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先在 X 私信页点面板底部的「复制诊断信息」，粘贴到下面。里面只有页面结构统计和运行日志，不含消息内容。
+        Please click "复制诊断信息" (copy diagnostics) at the bottom of the panel and paste it below. It contains no message content.
+  - type: dropdown
+    id: install
+    attributes:
+      label: 安装方式 / Install method
+      options:
+        - Chrome 网上应用店 / Chrome Web Store
+        - 油猴脚本 / Userscript (Tampermonkey, Violentmonkey…)
+        - 本地加载 / Load unpacked
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 插件版本 / Version
+      description: 面板右下角显示的版本号 / shown at the bottom right of the panel
+      placeholder: v1.0.0
+  - type: input
+    id: browser
+    attributes:
+      label: 浏览器 / Browser
+      placeholder: Chrome 141 / Edge 141 / Firefox 144 + Tampermonkey
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么 / What happened
+      description: 做了哪些操作，期望怎样，实际怎样 / steps, expected and actual result
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 诊断信息 / Diagnostics
+      render: json

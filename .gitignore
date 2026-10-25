@@ -1,0 +1,10 @@
+# 构建产物：由 tools/build.py 生成，随 GitHub Release 发布
+dist/
+
+# 宣传图渲染用的中间文件（tools/make_store_assets.py 会重新生成）
+store/assets/
+
+# 本机环境
+.DS_Store
+__pycache__/
+.claude/
