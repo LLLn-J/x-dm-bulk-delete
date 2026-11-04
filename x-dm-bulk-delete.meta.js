@@ -1,12 +1,14 @@
 // ==UserScript==
-// @name               X 私信批量删除
+// @name               DM Bulk Delete for X
 // @name:en            DM Bulk Delete for X
 // @name:zh-CN         X 私信批量删除
+// @name:zh-TW         X 私訊批次刪除
 // @namespace          https://github.com/LLLn-J/x-dm-bulk-delete
-// @version            1.0.0
-// @description        在 X（Twitter）私信页面批量勾选并删除单条消息或整个会话。在本机模拟点击 X 自己的菜单完成，数据不会离开你的设备。
+// @version            1.1.0
+// @description        Bulk-delete X (Twitter) DMs: tick messages or whole chats and delete them in one go. Runs locally; no data leaves your device.
 // @description:en     Bulk-delete X (Twitter) DMs: tick messages or whole chats and delete them in one go. Runs locally; no data leaves your device.
 // @description:zh-CN  在 X（Twitter）私信页面批量勾选并删除单条消息或整个会话。在本机模拟点击 X 自己的菜单完成，数据不会离开你的设备。
+// @description:zh-TW  在 X（Twitter）私訊頁面批次勾選並刪除單則訊息或整個對話。在本機模擬點擊 X 自己的選單完成，資料不會離開你的裝置。
 // @author             Xuan Hu
 // @license            MIT
 // @homepageURL        https://github.com/LLLn-J/x-dm-bulk-delete

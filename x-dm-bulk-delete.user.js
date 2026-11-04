@@ -1,12 +1,14 @@
 // ==UserScript==
-// @name               X 私信批量删除
+// @name               DM Bulk Delete for X
 // @name:en            DM Bulk Delete for X
 // @name:zh-CN         X 私信批量删除
+// @name:zh-TW         X 私訊批次刪除
 // @namespace          https://github.com/LLLn-J/x-dm-bulk-delete
-// @version            1.0.0
-// @description        在 X（Twitter）私信页面批量勾选并删除单条消息或整个会话。在本机模拟点击 X 自己的菜单完成，数据不会离开你的设备。
+// @version            1.1.0
+// @description        Bulk-delete X (Twitter) DMs: tick messages or whole chats and delete them in one go. Runs locally; no data leaves your device.
 // @description:en     Bulk-delete X (Twitter) DMs: tick messages or whole chats and delete them in one go. Runs locally; no data leaves your device.
 // @description:zh-CN  在 X（Twitter）私信页面批量勾选并删除单条消息或整个会话。在本机模拟点击 X 自己的菜单完成，数据不会离开你的设备。
+// @description:zh-TW  在 X（Twitter）私訊頁面批次勾選並刪除單則訊息或整個對話。在本機模擬點擊 X 自己的選單完成，資料不會離開你的裝置。
 // @author             Xuan Hu
 // @license            MIT
 // @homepageURL        https://github.com/LLLn-J/x-dm-bulk-delete
@@ -228,7 +230,7 @@
     logLines.push(line);
     if (logLines.length > 300) logLines.shift();
     for (const fn of logListeners) fn(line);
-    (level === 'error' ? console.warn : console.debug)('[X 私信批量删除]', msg);
+    (level === 'error' ? console.warn : console.debug)('[x-dm-bulk-delete]', msg);
   }
 
   const onLog = (fn) => logListeners.add(fn);
@@ -241,6 +243,7 @@
     msgFilter: 'all', // all | mine | theirs
     leaveGroups: false,
     delayMs: 800,
+    lang: 'auto', // auto | zh | en
     panel: { left: null, top: null, collapsed: false },
   };
   const chromeStorage = () => (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) || null;
@@ -293,6 +296,208 @@
   });
 })();
 
+// ---- src/i18n.js ----
+// i18n.js — 面板文字（中文 / English）。
+// 界面语言优先跟随 X 的界面语言（X Chat 根节点上的 lang），取不到时看 x.com 的 <html lang>，再取不到看浏览器语言；
+// 面板里也可以手动指定。以 zh 开头的都用中文（繁体用户看简体），其余一律英文。
+(() => {
+  'use strict';
+  const XBD = globalThis.XBD;
+
+  const count = {
+    zh: ({ n, kind }) => `${n} ${kind === 'conv' ? '个会话' : '条消息'}`,
+    en: ({ n, kind }) => `${n} ${kind === 'conv' ? 'conversation' : 'message'}${n === 1 ? '' : 's'}`,
+  };
+
+  const STRINGS = {
+    zh: {
+      // 面板
+      title: '私信批量删除',
+      collapse: '收起/展开',
+      tabConv: '整个会话',
+      tabMsg: '单条消息',
+      startSelect: '进入选择模式',
+      stopSelect: '退出选择模式',
+      selectVisible: '全选当前显示',
+      sweepConv: '滚动加载并全选',
+      sweepMsg: '加载全部历史并全选',
+      clear: '清空选择',
+      leaveGroups: '群聊也删除（会退出群聊）',
+      filterLabel: '全选时',
+      filterAll: '所有消息',
+      filterMine: '只选我发的',
+      filterTheirs: '只选对方发的',
+      modeLabel: '删除方式',
+      modeMe: '仅为我删除',
+      modeAll: '为所有人删除（不行就仅为我）',
+      modeAllOnly: '只为所有人删除（不行就跳过）',
+      delayLabel: '每条间隔',
+      ms: '毫秒',
+      langLabel: '界面语言',
+      langAuto: '自动',
+      stop: '停止',
+      hint: '选择模式下直接点列表里的行来勾选，按住 Shift 点击可连选，Esc 退出。删除时请让这个标签页保持在前台。',
+      copyDiag: '复制诊断信息',
+      feedback: '反馈问题',
+      shield: '正在删除…删除期间请不要操作页面，按 Esc 或点面板上的「停止」可中断',
+      convStats: ({ sel, vis }) => `已选 <b>${sel}</b> 个 · 列表里当前显示 <b>${vis}</b> 个`,
+      msgStats: ({ sel, vis }) => `已选 <b>${sel}</b> 条 · 当前显示 <b>${vis}</b> 条`,
+      warnNoConv: '当前页面没看到会话列表（窄屏下请先返回列表）',
+      warnNoMsg: '请先在左侧打开一个对话',
+      runBtn: (v) => `删除选中的 ${count.zh(v)}`,
+      runArmed: (v) => `再点一次：确认删除 ${count.zh(v)}（不可撤销）`,
+      badgeSel: ({ n }) => `已选 ${n}`,
+      progress: ({ done, total, ok, skip, fail }) => `${done}/${total} · 成功 ${ok} · 跳过 ${skip} · 失败 ${fail}`,
+      sweeping: ({ n }) => `正在滚动加载… 已选 ${n}`,
+      count: count.zh,
+      // 日志
+      logSelected: ({ count }) => `新勾选了 ${count}`,
+      logNoConvList: '当前页面没有会话列表',
+      logOpenConv: '请先打开一个对话',
+      logSweepConv: '向下滚动加载全部会话并全选…',
+      logSweepMsg: '向上滚动加载这个对话的全部历史并全选…',
+      logSweepStopped: ({ count }) => `已停止加载，当前选中 ${count}`,
+      logSweepDone: ({ count }) => `加载完毕，共选中 ${count}`,
+      logRunStart: ({ count }) => `开始删除 ${count}…`,
+      logPaused: '页面没在前台显示（标签页在后台或窗口被挡住），已暂停；回到这个页面后自动继续',
+      logOk: ({ id, note }) => `✓ ${id} ${note}`,
+      logSkip: ({ id, reason }) => `– ${id} 跳过：${reason}`,
+      logFail: ({ id, reason }) => `✗ ${id} 失败：${reason}`,
+      logScriptError: ({ msg }) => `脚本出错：${msg}`,
+      logStreak: '连续 3 次失败，已自动停止。可能是 X 改了界面或触发了频率限制，稍后再试；仍不行请点“复制诊断信息”。',
+      logStopped: '已手动停止',
+      logRunEnd: ({ ok, skip, fail }) => `结束：成功 ${ok}，跳过 ${skip}，失败 ${fail}（失败的仍保持勾选，可再次删除重试）`,
+      logDiagCopied: '诊断信息已复制到剪贴板（只有页面结构统计和日志，不含消息内容）',
+      logDiagFallback: '无法写入剪贴板，诊断信息显示在下方文本框里',
+      // 删除结果
+      rMsgNotFound: '没找到这条消息（可能已被删掉或还没加载）',
+      rNoMoreButton: '悬停后没出现「更多」按钮',
+      rMenuNotOpen: '「更多」菜单没打开',
+      rOnlyForMe: '这条只能为自己删除',
+      rNoDeleteOption: '菜单里没有删除选项',
+      rNoConfirmShown: '点了删除后没出现确认',
+      rNoConfirmButton: '确认框里找不到确认按钮',
+      rMsgStillThere: '删除后消息还在列表里',
+      rGroupSkipped: '群聊（没勾选“群聊也删除”）',
+      rConvNotFound: '列表里没找到这个会话（可能已被删掉）',
+      rContextMenuNotOpen: '右键菜单没打开',
+      rNoDeleteConv: '右键菜单里没有“删除对话”',
+      rConvStillThere: '删除后会话还在列表里',
+      nDeletedForAll: '已为所有人删除',
+      nDeletedForMe: '已为我删除',
+      nLeftAndDeleted: '已退出并删除',
+      nDeleted: '已删除',
+    },
+    en: {
+      title: 'DM Bulk Delete',
+      collapse: 'Collapse / expand',
+      tabConv: 'Conversations',
+      tabMsg: 'Messages',
+      startSelect: 'Start selecting',
+      stopSelect: 'Stop selecting',
+      selectVisible: 'Select all shown',
+      sweepConv: 'Load all & select',
+      sweepMsg: 'Load all & select',
+      clear: 'Clear selection',
+      leaveGroups: 'Also delete group chats (leaves them)',
+      filterLabel: 'Select all:',
+      filterAll: 'All messages',
+      filterMine: 'Only mine',
+      filterTheirs: 'Only theirs',
+      modeLabel: 'Delete:',
+      modeMe: 'For me only',
+      modeAll: 'For everyone (else for me)',
+      modeAllOnly: 'For everyone only (else skip)',
+      delayLabel: 'Delay per item',
+      ms: 'ms',
+      langLabel: 'Language',
+      langAuto: 'Auto',
+      stop: 'Stop',
+      hint: 'In selection mode, click rows to tick them, Shift-click to select a range, and press Esc to exit. Keep this tab in the foreground while deleting.',
+      copyDiag: 'Copy diagnostics',
+      feedback: 'Report a problem',
+      shield: 'Deleting… Please don’t use the page in the meantime. Press Esc or click “Stop” in the panel to cancel.',
+      convStats: ({ sel, vis }) => `<b>${sel}</b> selected · <b>${vis}</b> shown in the list`,
+      msgStats: ({ sel, vis }) => `<b>${sel}</b> selected · <b>${vis}</b> shown`,
+      warnNoConv: 'No conversation list on this page (in a narrow window, go back to the list first)',
+      warnNoMsg: 'Open a conversation on the left first',
+      runBtn: (v) => `Delete ${count.en(v).replace(/^(\d+) /, '$1 selected ')}`,
+      runArmed: (v) => `Click again to delete ${count.en(v)} (can’t be undone)`,
+      badgeSel: ({ n }) => `${n} selected`,
+      progress: ({ done, total, ok, skip, fail }) => `${done}/${total} · ${ok} done · ${skip} skipped · ${fail} failed`,
+      sweeping: ({ n }) => `Loading… ${n} selected`,
+      count: count.en,
+      logSelected: ({ count }) => `Selected ${count} more`,
+      logNoConvList: 'There is no conversation list on this page',
+      logOpenConv: 'Open a conversation first',
+      logSweepConv: 'Scrolling down to load and select all conversations…',
+      logSweepMsg: 'Scrolling up to load and select this chat’s full history…',
+      logSweepStopped: ({ count }) => `Stopped loading; ${count} selected`,
+      logSweepDone: ({ count }) => `Finished loading; ${count} selected`,
+      logRunStart: ({ count }) => `Deleting ${count}…`,
+      logPaused: 'Paused because the page isn’t on screen (tab in the background or window covered); it resumes when you come back',
+      logOk: ({ id, note }) => `✓ ${id} ${note}`,
+      logSkip: ({ id, reason }) => `– ${id} skipped: ${reason}`,
+      logFail: ({ id, reason }) => `✗ ${id} failed: ${reason}`,
+      logScriptError: ({ msg }) => `Script error: ${msg}`,
+      logStreak: 'Stopped after 3 failures in a row. X may have changed its interface or rate-limited you; try again later, and if it keeps failing, click “Copy diagnostics”.',
+      logStopped: 'Stopped',
+      logRunEnd: ({ ok, skip, fail }) => `Finished: ${ok} succeeded, ${skip} skipped, ${fail} failed (failed items stay ticked so you can retry)`,
+      logDiagCopied: 'Diagnostics copied to the clipboard (page-structure counts and the log only, no message content)',
+      logDiagFallback: 'Couldn’t write to the clipboard; the diagnostics are in the box below',
+      rMsgNotFound: 'message not found (already deleted or not loaded yet)',
+      rNoMoreButton: 'the “More” button didn’t appear on hover',
+      rMenuNotOpen: 'the “More” menu didn’t open',
+      rOnlyForMe: 'this one can only be deleted for you',
+      rNoDeleteOption: 'no delete option in the menu',
+      rNoConfirmShown: 'no confirmation appeared after clicking Delete',
+      rNoConfirmButton: 'couldn’t find the confirm button',
+      rMsgStillThere: 'the message is still listed after deleting',
+      rGroupSkipped: 'group chat (“Also delete group chats” is off)',
+      rConvNotFound: 'conversation not found in the list (maybe already deleted)',
+      rContextMenuNotOpen: 'the right-click menu didn’t open',
+      rNoDeleteConv: 'no “Delete conversation” in the right-click menu',
+      rConvStillThere: 'the conversation is still listed after deleting',
+      nDeletedForAll: 'deleted for everyone',
+      nDeletedForMe: 'deleted for you',
+      nLeftAndDeleted: 'left and deleted',
+      nDeleted: 'deleted',
+    },
+  };
+
+  let lang = 'en';
+
+  const isChinese = (tag) => /^zh(?:[-_]|$)/i.test(tag);
+
+  // pref: 'auto' | 'zh' | 'en'（面板里的「界面语言」设置）
+  function detectLang(pref) {
+    if (pref === 'zh' || pref === 'en') return pref;
+    // X Chat 在自己的根节点上设置 lang，跟随 X 的界面语言；它在 shadow root 里，closest 正好停在根节点
+    const anchor = XBD.query(
+      '[data-testid="dm-inbox-panel"], [data-testid="dm-conversation-panel"], [data-testid="dm-message-list"]',
+    );
+    const tags = [
+      anchor?.closest('[lang]')?.getAttribute('lang'),
+      document.documentElement.getAttribute('lang'),
+      ...(navigator.languages || []),
+      navigator.language,
+    ];
+    const first = tags.find((tag) => tag && tag.trim());
+    return first && isChinese(first) ? 'zh' : 'en';
+  }
+
+  function setLang(next) {
+    lang = next === 'zh' ? 'zh' : 'en';
+  }
+
+  function t(key, vars) {
+    const value = STRINGS[lang][key] ?? STRINGS.en[key] ?? key;
+    return typeof value === 'function' ? value(vars || {}) : value;
+  }
+
+  Object.assign(XBD, { STRINGS, detectLang, setLang, t, getLang: () => lang });
+})();
+
 // ---- src/xchat.js ----
 // xchat.js — X Chat 网页版（x.com/i/chat）的页面结构和删除流程。
 // 选择器取自 X Chat 前端代码里的 data-testid / data-slot（2026-10，构建 cfb77a3b）。
@@ -301,7 +506,7 @@
 (() => {
   'use strict';
   const XBD = globalThis.XBD;
-  const { sleep, waitFor, queryAll, query, isShown, isLabel, fire, hover, unhover, activate, press, pressKey } = XBD;
+  const { sleep, waitFor, queryAll, query, isShown, isLabel, fire, hover, unhover, activate, press, pressKey, t } = XBD;
 
   const esc = (s) => CSS.escape(s);
   const SEL = {
@@ -434,7 +639,7 @@
   //   旧版：「删除全部」「仅删除我的」 → 弹出确认框
   async function deleteMessage(id, mode, positions) {
     let row = await locate(msg, id, positions);
-    if (!row) return fail('没找到这条消息（可能已被删掉或还没加载）');
+    if (!row) return fail(t('rMsgNotFound'));
     row.scrollIntoView({ block: 'center' });
     await sleep(150);
     await dismissPopups();
@@ -447,10 +652,10 @@
       hover(content); // 悬停后 X 才渲染消息旁边的「更多」按钮
       btn = await waitFor(() => row.querySelector(btnSel) || query(btnSel), { timeout: 900 + attempt * 600 });
     }
-    if (!btn) return fail('悬停后没出现「更多」按钮');
+    if (!btn) return fail(t('rNoMoreButton'));
 
     const menu = await openMenuFrom(btn);
-    if (!menu) return fail('「更多」菜单没打开');
+    if (!menu) return fail(t('rMenuNotOpen'));
     let everyoneUsed = false;
     try {
       const items = menuItems(menu);
@@ -467,13 +672,13 @@
       } else if (del) {
         first = del;
       } else if (forMe) {
-        if (mode === 'all-only') return skip('这条只能为自己删除');
+        if (mode === 'all-only') return skip(t('rOnlyForMe'));
         first = forMe;
       } else {
         const destructive = items.filter(isDestructive);
         if (destructive.length === 1) first = destructive[0];
       }
-      if (!first) return fail('菜单里没有删除选项');
+      if (!first) return fail(t('rNoDeleteOption'));
 
       const dialogsBefore = new Set(openDialogs());
       activate(first);
@@ -490,22 +695,22 @@
         },
         { timeout: 2500 },
       );
-      if (!next) return fail('点了删除后没出现确认');
+      if (!next) return fail(t('rNoConfirmShown'));
 
       if (next.dlg) {
         if (!(await confirmDialog(next.dlg, ['Delete for all', 'Delete for me', 'Delete', 'Confirm']))) {
-          return fail('确认框里找不到确认按钮');
+          return fail(t('rNoConfirmButton'));
         }
       } else if (next.justMe || next.everyone) {
         const choice = mode === 'me' ? next.justMe : next.everyone || (mode === 'all' ? next.justMe : null);
-        if (!choice) return skip('这条只能为自己删除');
+        if (!choice) return skip(t('rOnlyForMe'));
         everyoneUsed = choice === next.everyone;
         activate(choice);
       }
 
       const gone = await waitFor(() => !msg.find(id), { timeout: 6000, interval: 100 });
-      if (!gone) return fail('删除后消息还在列表里');
-      return { status: 'ok', note: everyoneUsed ? '已为所有人删除' : '已为我删除' };
+      if (!gone) return fail(t('rMsgStillThere'));
+      return { status: 'ok', note: t(everyoneUsed ? 'nDeletedForAll' : 'nDeletedForMe') };
     } finally {
       await dismissPopups();
       unhover(row);
@@ -516,9 +721,9 @@
   // 会话没有「更多」按钮，操作菜单是右键菜单：「删除对话」(群聊是「离开对话」) → 确认框
   async function deleteConversation(id, { leaveGroups }, positions) {
     const isGroup = conv.isGroup(id);
-    if (isGroup && !leaveGroups) return skip('群聊（没勾选“群聊也删除”）');
+    if (isGroup && !leaveGroups) return skip(t('rGroupSkipped'));
     let item = await locate(conv, id, positions);
-    if (!item) return fail('列表里没找到这个会话（可能已被删掉）');
+    if (!item) return fail(t('rConvNotFound'));
     item.scrollIntoView({ block: 'nearest' });
     await sleep(150);
     await dismissPopups();
@@ -529,24 +734,24 @@
     hover(trigger);
     fire(trigger, 'contextmenu', { button: 2, buttons: 2 });
     const menu = await waitFor(() => openMenus().find((m) => !before.has(m)), { timeout: 2000 });
-    if (!menu) return fail('右键菜单没打开');
+    if (!menu) return fail(t('rContextMenuNotOpen'));
     try {
       // 菜单先只有「在新标签页打开」，会话操作稍后才异步加进来
       const action = await waitFor(
         () => menuItems(menu).find((i) => isLabel(i, 'Delete conversation', 'Leave conversation')),
         { timeout: 3000 },
       );
-      if (!action) return fail('右键菜单里没有“删除对话”');
+      if (!action) return fail(t('rNoDeleteConv'));
 
       const dialogsBefore = new Set(openDialogs());
       activate(action);
       const dlg = await waitFor(() => openDialogs().find((d) => !dialogsBefore.has(d)), { timeout: 3000 });
       if (dlg && !(await confirmDialog(dlg, ['Confirm', 'Delete', 'Delete conversation', 'Leave conversation']))) {
-        return fail('确认框里找不到确认按钮');
+        return fail(t('rNoConfirmButton'));
       }
       const gone = await waitFor(() => !conv.find(id), { timeout: 8000, interval: 120 });
-      if (!gone) return fail('删除后会话还在列表里');
-      return { status: 'ok', note: isGroup ? '已退出并删除' : '已删除' };
+      if (!gone) return fail(t('rConvStillThere'));
+      return { status: 'ok', note: t(isGroup ? 'nLeftAndDeleted' : 'nDeleted') };
     } finally {
       await dismissPopups();
     }
@@ -576,13 +781,17 @@
       .getEntriesByType('resource')
       .map((e) => e.name)
       .find((n) => n.includes('/x-web/xchat/embed/'));
-    // 优先取 X Chat 根节点上的界面语言，而不是外层 <html lang>
-    const langEl = queryAll('[lang]').find((el) => el.getRootNode() !== document) || document.documentElement;
+    const xchatRoot = query('[data-testid="dm-inbox-panel"], [data-testid="dm-conversation-panel"]')?.closest('[lang]');
     return {
       path: location.pathname.replace(/\d{4,}/g, '#'),
       xchatBuild: build ? (build.match(/embed\/([0-9a-f]{8})/) || [])[1] : null,
       shadowRoots: XBD.roots(true).length - 1,
-      lang: langEl ? langEl.getAttribute('lang') : null,
+      lang: {
+        xchat: xchatRoot?.getAttribute('lang') ?? null,
+        page: document.documentElement.getAttribute('lang'),
+        browser: navigator.language,
+        panel: XBD.getLang(),
+      },
       counts: {
         inboxPanel: count('[data-testid="dm-inbox-panel"]'),
         convScroller: count(SEL.convScroller),
@@ -616,10 +825,10 @@
 (() => {
   'use strict';
   const XBD = globalThis.XBD;
-  const { sleep, jitter, log, onLog, logLines, saveSettings, OWN_HOST_ATTR } = XBD;
+  const { sleep, jitter, log, onLog, logLines, saveSettings, OWN_HOST_ATTR, t } = XBD;
   const XC = XBD.xchat;
   const KINDS = { conv: XC.conv, msg: XC.msg };
-  const UNIT = { conv: '个会话', msg: '条消息' };
+  const count = (kind, n) => t('count', { kind, n });
   const HOMEPAGE = 'https://github.com/LLLn-J/x-dm-bulk-delete';
   const VERSION = (() => {
     try {
@@ -692,7 +901,7 @@ label.opt { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
 .progress .line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.log { max-height: 110px; overflow-y: auto; font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); background: var(--soft); border-radius: 8px; padding: 6px 8px; white-space: pre-wrap; word-break: break-all; }
+.log { max-height: 110px; overflow-y: auto; font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); background: var(--soft); border-radius: 8px; padding: 6px 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .log:empty { display: none; }
 .log .error { color: var(--danger); }
 .foot { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12px; }
@@ -719,59 +928,62 @@ textarea.diag[hidden] { display: none; }
   const HTML = `
 <div class="wrap">
   <div class="layer"></div>
-  <div class="shield" hidden><div class="banner">正在删除…删除期间请不要操作页面，按 Esc 或点面板上的「停止」可中断</div></div>
+  <div class="shield" hidden><div class="banner" data-i18n="shield"></div></div>
   <div class="panel">
     <div class="head" data-drag>
-      <b>私信批量删除</b><span class="badge" data-k="badge"></span>
-      <button class="icon" type="button" data-act="collapse" title="收起/展开">–</button>
+      <b data-i18n="title"></b><span class="badge" data-k="badge"></span>
+      <button class="icon" type="button" data-act="collapse" data-i18n-title="collapse">–</button>
     </div>
     <div class="body">
       <div class="tabs">
-        <button type="button" data-tab="conv">整个会话</button>
-        <button type="button" data-tab="msg">单条消息</button>
+        <button type="button" data-tab="conv" data-i18n="tabConv"></button>
+        <button type="button" data-tab="msg" data-i18n="tabMsg"></button>
       </div>
       <div class="pane" data-pane="conv">
-        <div class="stats">已选 <b data-k="conv-sel">0</b> 个 · 列表里当前显示 <b data-k="conv-vis">0</b> 个</div>
+        <div class="stats" data-k="conv-stats"></div>
         <div class="warn" data-k="conv-warn"></div>
         <div class="grid">
-          <button class="btn" type="button" data-act="select">进入选择模式</button>
-          <button class="btn" type="button" data-act="select-visible">全选当前显示</button>
-          <button class="btn" type="button" data-act="sweep">滚动加载并全选</button>
-          <button class="btn" type="button" data-act="clear">清空选择</button>
+          <button class="btn" type="button" data-act="select"></button>
+          <button class="btn" type="button" data-act="select-visible" data-i18n="selectVisible"></button>
+          <button class="btn" type="button" data-act="sweep" data-i18n="sweepConv"></button>
+          <button class="btn" type="button" data-act="clear" data-i18n="clear"></button>
         </div>
-        <label class="opt"><input type="checkbox" data-set="leaveGroups"> 群聊也删除（会退出群聊）</label>
-        <button class="danger" type="button" data-act="run">删除选中的会话</button>
+        <label class="opt"><input type="checkbox" data-set="leaveGroups"> <span data-i18n="leaveGroups"></span></label>
+        <button class="danger" type="button" data-act="run"></button>
       </div>
       <div class="pane" data-pane="msg" hidden>
-        <div class="stats">已选 <b data-k="msg-sel">0</b> 条 · 当前显示 <b data-k="msg-vis">0</b> 条</div>
+        <div class="stats" data-k="msg-stats"></div>
         <div class="warn" data-k="msg-warn"></div>
         <div class="grid">
-          <button class="btn" type="button" data-act="select">进入选择模式</button>
-          <button class="btn" type="button" data-act="select-visible">全选当前显示</button>
-          <button class="btn" type="button" data-act="sweep">加载全部历史并全选</button>
-          <button class="btn" type="button" data-act="clear">清空选择</button>
+          <button class="btn" type="button" data-act="select"></button>
+          <button class="btn" type="button" data-act="select-visible" data-i18n="selectVisible"></button>
+          <button class="btn" type="button" data-act="sweep" data-i18n="sweepMsg"></button>
+          <button class="btn" type="button" data-act="clear" data-i18n="clear"></button>
         </div>
-        <div class="field">全选时 <select data-set="msgFilter">
-          <option value="all">所有消息</option><option value="mine">只选我发的</option><option value="theirs">只选对方发的</option>
+        <div class="field"><span data-i18n="filterLabel"></span> <select data-set="msgFilter">
+          <option value="all" data-i18n="filterAll"></option><option value="mine" data-i18n="filterMine"></option><option value="theirs" data-i18n="filterTheirs"></option>
         </select></div>
-        <div class="field">删除方式 <select data-set="msgMode">
-          <option value="me">仅为我删除</option>
-          <option value="all">为所有人删除（不行就仅为我）</option>
-          <option value="all-only">只为所有人删除（不行就跳过）</option>
+        <div class="field"><span data-i18n="modeLabel"></span> <select data-set="msgMode">
+          <option value="me" data-i18n="modeMe"></option>
+          <option value="all" data-i18n="modeAll"></option>
+          <option value="all-only" data-i18n="modeAllOnly"></option>
         </select></div>
-        <button class="danger" type="button" data-act="run">删除选中的消息</button>
+        <button class="danger" type="button" data-act="run"></button>
       </div>
-      <div class="field">每条间隔 <input type="number" min="300" max="10000" step="100" data-set="delayMs"> 毫秒</div>
+      <div class="field"><span data-i18n="delayLabel"></span> <input type="number" min="300" max="10000" step="100" data-set="delayMs"> <span data-i18n="ms"></span></div>
+      <div class="field"><span data-i18n="langLabel"></span> <select data-set="lang">
+        <option value="auto" data-i18n="langAuto"></option><option value="zh">中文</option><option value="en">English</option>
+      </select></div>
       <div class="progress" hidden>
-        <div class="line"><span data-k="prog-text"></span><button class="btn" type="button" data-act="stop">停止</button></div>
+        <div class="line"><span data-k="prog-text"></span><button class="btn" type="button" data-act="stop" data-i18n="stop"></button></div>
         <div class="bar"><i data-k="prog-bar"></i></div>
       </div>
-      <div class="hint">选择模式下直接点列表里的行来勾选，按住 Shift 点击可连选，Esc 退出。删除时请让这个标签页保持在前台。</div>
+      <div class="hint" data-i18n="hint"></div>
       <div class="log" data-k="log"></div>
       <textarea class="diag" data-k="diag" readonly hidden></textarea>
       <div class="foot">
-        <button class="link" type="button" data-act="diag">复制诊断信息</button>
-        <span><a class="link" href="${HOMEPAGE}/issues" target="_blank" rel="noopener noreferrer">反馈问题</a> · v${VERSION}</span>
+        <button class="link" type="button" data-act="diag" data-i18n="copyDiag"></button>
+        <span><a class="link" href="${HOMEPAGE}/issues" target="_blank" rel="noopener noreferrer" data-i18n="feedback"></a> · v${VERSION}</span>
       </div>
     </div>
   </div>
@@ -935,13 +1147,13 @@ textarea.diag[hidden] { display: none; }
     const kind = KINDS[kindKey];
     if (state.busy) return;
     if (!kind.scroller()) {
-      log(kindKey === 'conv' ? '当前页面没有会话列表' : '请先打开一个对话');
+      log(t(kindKey === 'conv' ? 'logNoConvList' : 'logOpenConv'));
       return;
     }
     state.busy = 'sweep';
     state.stop = false;
     setSelecting(true);
-    log(kindKey === 'conv' ? '向下滚动加载全部会话并全选…' : '向上滚动加载这个对话的全部历史并全选…');
+    log(t(kindKey === 'conv' ? 'logSweepConv' : 'logSweepMsg'));
     const sel = state.selected[kindKey];
     const meta = state.meta[kindKey];
     await XC.sweep(
@@ -956,7 +1168,7 @@ textarea.diag[hidden] { display: none; }
       () => state.stop || !active,
     );
     state.busy = null;
-    log(state.stop ? `已停止加载，当前选中 ${sel.size} ${UNIT[kindKey]}` : `加载完毕，共选中 ${sel.size} ${UNIT[kindKey]}`);
+    log(t(state.stop ? 'logSweepStopped' : 'logSweepDone', { count: count(kindKey, sel.size) }));
     refresh();
     schedule();
   }
@@ -984,6 +1196,20 @@ textarea.diag[hidden] { display: none; }
     return best;
   }
 
+  // X 有些步骤（比如右键「删除对话」后弹确认框）放在 requestAnimationFrame 里。页面不在前台渲染时
+  // （标签页在后台、窗口被挡住或最小化）它不会执行，有时 document.hidden 还是 false，所以直接看帧有没有在跑
+  const frameWithin = (ms) =>
+    Promise.race([new Promise((r) => requestAnimationFrame(() => r(true))), sleep(ms).then(() => false)]);
+
+  async function waitForRendering() {
+    if (await frameWithin(1000)) return true;
+    log(t('logPaused'));
+    while (!state.stop && active) {
+      if (await frameWithin(1000)) return true;
+    }
+    return false;
+  }
+
   async function run(kindKey) {
     const sel = state.selected[kindKey];
     if (state.busy || !sel.size) return;
@@ -993,17 +1219,12 @@ textarea.diag[hidden] { display: none; }
     const positions = { get: (id) => state.meta[kindKey].get(id)?.pos };
     const pending = new Set(sel);
     $.shield.hidden = false;
-    log(`开始删除 ${prog.total} ${UNIT[kindKey]}…`);
+    log(t('logRunStart', { count: count(kindKey, prog.total) }));
     refresh();
     schedule();
     let streak = 0;
     while (pending.size && !state.stop && active) {
-      // X 的部分操作走 requestAnimationFrame，标签页在后台时不会执行，先暂停等切回来
-      if (document.hidden) {
-        log('标签页在后台，已暂停；切回这个标签页后自动继续');
-        while (document.hidden && !state.stop) await sleep(500);
-        if (state.stop) break;
-      }
+      if (!(await waitForRendering())) break;
       const id = nextTarget(kindKey, pending);
       pending.delete(id);
       state.flags[kindKey].set(id, 'current');
@@ -1014,7 +1235,7 @@ textarea.diag[hidden] { display: none; }
             ? await XC.deleteConversation(id, { leaveGroups: settings.leaveGroups }, positions)
             : await XC.deleteMessage(id, settings.msgMode, positions);
       } catch (err) {
-        res = { status: 'fail', reason: '脚本出错：' + ((err && err.message) || err) };
+        res = { status: 'fail', reason: t('logScriptError', { msg: (err && err.message) || String(err) }) };
       }
       state.flags[kindKey].delete(id);
       prog.done++;
@@ -1023,26 +1244,26 @@ textarea.diag[hidden] { display: none; }
         streak = 0;
         sel.delete(id);
         state.meta[kindKey].delete(id);
-        log(`✓ ${short(id)} ${res.note}`);
+        log(t('logOk', { id: short(id), note: res.note }));
       } else if (res.status === 'skip') {
         prog.skip++;
         streak = 0;
-        log(`– ${short(id)} 跳过：${res.reason}`);
+        log(t('logSkip', { id: short(id), reason: res.reason }));
       } else {
         prog.fail++;
         streak++;
         state.flags[kindKey].set(id, 'failed');
-        log(`✗ ${short(id)} 失败：${res.reason}`, 'error');
+        log(t('logFail', { id: short(id), reason: res.reason }), 'error');
       }
       refresh();
       if (streak >= 3) {
-        log('连续 3 次失败，已自动停止。可能是 X 改了界面或触发了频率限制，稍后再试；仍不行请点“复制诊断信息”。', 'error');
+        log(t('logStreak'), 'error');
         break;
       }
       if (pending.size && !state.stop) await sleep(jitter(settings.delayMs));
     }
-    if (state.stop) log('已手动停止');
-    log(`结束：成功 ${prog.ok}，跳过 ${prog.skip}，失败 ${prog.fail}（失败的仍保持勾选，可再次删除重试）`);
+    if (state.stop) log(t('logStopped'));
+    log(t('logRunEnd', prog));
     state.busy = null;
     $.shield.hidden = true;
     if (!state.selecting) clearMarks();
@@ -1056,6 +1277,12 @@ textarea.diag[hidden] { display: none; }
     v = String(v);
     if (el.textContent !== v) el.textContent = v;
   };
+  const setHTML = (el, html) => {
+    if (el.dataset.html !== html) {
+      el.dataset.html = html;
+      el.innerHTML = html;
+    }
+  };
 
   function refresh() {
     if (!$.panel) return;
@@ -1066,40 +1293,37 @@ textarea.diag[hidden] { display: none; }
     }
     for (const p of $.panes) p.hidden = p.dataset.pane !== tab;
     for (const key of ['conv', 'msg']) {
-      setText($[`${key}-sel`], state.selected[key].size);
-      setText($[`${key}-vis`], state.visible[key].filter((it) => it.visible).length);
+      const vis = state.visible[key].filter((it) => it.visible).length;
+      setHTML($[`${key}-stats`], t(key === 'conv' ? 'convStats' : 'msgStats', { sel: state.selected[key].size, vis }));
     }
     const pane = $.panes.find((p) => p.dataset.pane === tab);
     const n = state.selected[tab].size;
     const available = !!KINDS[tab].scroller();
-    setText(
-      $[`${tab}-warn`],
-      available ? '' : tab === 'conv' ? '当前页面没看到会话列表（窄屏下请先返回列表）' : '请先在左侧打开一个对话',
-    );
+    setText($[`${tab}-warn`], available ? '' : t(tab === 'conv' ? 'warnNoConv' : 'warnNoMsg'));
     const armed = Date.now() < state.armedUntil;
     for (const b of pane.querySelectorAll('[data-act]')) {
       const act = b.dataset.act;
       if (act === 'select') {
         b.classList.toggle('on', state.selecting);
-        setText(b, state.selecting ? '退出选择模式' : '进入选择模式');
+        setText(b, t(state.selecting ? 'stopSelect' : 'startSelect'));
         b.disabled = !!state.busy;
       } else if (act === 'run') {
         b.disabled = !!state.busy || !n;
         b.classList.toggle('armed', armed);
-        setText(b, armed ? `再点一次：确认删除 ${n} ${UNIT[tab]}（不可撤销）` : `删除选中的 ${n} ${UNIT[tab]}`);
+        setText(b, t(armed ? 'runArmed' : 'runBtn', { n, kind: tab }));
       } else {
         b.disabled = !!state.busy || (act !== 'clear' && !available);
       }
     }
     const total = state.selected.conv.size + state.selected.msg.size;
     const p = state.progress;
-    setText($.badge, state.busy === 'run' && p ? `${p.done}/${p.total}` : total ? `已选 ${total}` : '');
+    setText($.badge, state.busy === 'run' && p ? `${p.done}/${p.total}` : total ? t('badgeSel', { n: total }) : '');
     $.progress.hidden = !state.busy;
     if (state.busy === 'run' && p) {
-      setText($['prog-text'], `${p.done}/${p.total} · 成功 ${p.ok} · 跳过 ${p.skip} · 失败 ${p.fail}`);
+      setText($['prog-text'], t('progress', p));
       $['prog-bar'].style.width = `${(p.done / p.total) * 100}%`;
     } else if (state.busy === 'sweep') {
-      setText($['prog-text'], `正在滚动加载… 已选 ${state.selected[tab].size}`);
+      setText($['prog-text'], t('sweeping', { n: state.selected[tab].size }));
       $['prog-bar'].style.width = '100%';
     }
   }
@@ -1107,8 +1331,9 @@ textarea.diag[hidden] { display: none; }
   function appendLog(line) {
     if (!$.log) return;
     const div = document.createElement('div');
-    const t = line.time;
-    div.textContent = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}:${String(t.getSeconds()).padStart(2, '0')} ${line.msg}`;
+    const time = line.time;
+    const pad = (v) => String(v).padStart(2, '0');
+    div.textContent = `${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())} ${line.msg}`;
     if (line.level === 'error') div.className = 'error';
     $.log.append(div);
     while ($.log.childElementCount > 200) $.log.firstElementChild.remove();
@@ -1119,19 +1344,26 @@ textarea.diag[hidden] { display: none; }
     const info = {
       version: VERSION,
       ...XC.diagnostics(),
-      settings: { tab: settings.tab, msgMode: settings.msgMode, msgFilter: settings.msgFilter, leaveGroups: settings.leaveGroups, delayMs: settings.delayMs },
+      settings: {
+        tab: settings.tab,
+        msgMode: settings.msgMode,
+        msgFilter: settings.msgFilter,
+        leaveGroups: settings.leaveGroups,
+        delayMs: settings.delayMs,
+        lang: settings.lang,
+      },
       selected: { conv: state.selected.conv.size, msg: state.selected.msg.size },
       log: logLines.slice(-40).map((l) => l.msg),
     };
     const text = JSON.stringify(info, null, 2);
     try {
       await navigator.clipboard.writeText(text);
-      log('诊断信息已复制到剪贴板（只有页面结构统计和日志，不含消息内容）');
+      log(t('logDiagCopied'));
     } catch {
       $.diag.hidden = false;
       $.diag.value = text;
       $.diag.select();
-      log('无法写入剪贴板，诊断信息显示在下方文本框里');
+      log(t('logDiagFallback'));
     }
   }
 
@@ -1146,7 +1378,7 @@ textarea.diag[hidden] { display: none; }
     } else if (act === 'select-visible') {
       const n = selectVisible(tab);
       setSelecting(true);
-      log(`新勾选了 ${n} ${UNIT[tab]}`);
+      log(t('logSelected', { count: count(tab, n) }));
     } else if (act === 'sweep') {
       sweepSelect(tab);
     } else if (act === 'clear') {
@@ -1200,6 +1432,23 @@ textarea.diag[hidden] { display: none; }
     });
   }
 
+  // 把面板上的静态文字换成当前语言；动态文字在 refresh 里用 t() 生成
+  function applyLang() {
+    $.wrap.setAttribute('lang', XBD.getLang() === 'zh' ? 'zh-CN' : 'en');
+    for (const el of $.shadow.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+    for (const el of $.shadow.querySelectorAll('[data-i18n-title]')) el.title = t(el.dataset.i18nTitle);
+    refresh();
+  }
+
+  // 手动选的语言优先，否则跟随 X / 浏览器；X Chat 常比面板晚加载，所以 tick 里也会调用
+  function updateLang() {
+    const next = XBD.detectLang(settings.lang);
+    if (next !== XBD.getLang()) {
+      XBD.setLang(next);
+      applyLang();
+    }
+  }
+
   function isDarkPage() {
     const parse = (el) => (getComputedStyle(el).backgroundColor.match(/[\d.]+/g) || []).map(Number);
     let rgba = parse(document.body);
@@ -1223,6 +1472,7 @@ textarea.diag[hidden] { display: none; }
     shadow.append(tpl.content);
 
     $.host = host;
+    $.shadow = shadow;
     $.wrap = shadow.querySelector('.wrap');
     $.panel = shadow.querySelector('.panel');
     $.layer = shadow.querySelector('.layer');
@@ -1258,10 +1508,12 @@ textarea.diag[hidden] { display: none; }
           input.value = settings[key];
         } else settings[key] = input.value;
         saveSettings(settings);
+        if (key === 'lang') updateLang();
         refresh();
         schedule();
       });
     }
+    applyLang();
     enableDrag();
     for (const line of logLines) appendLog(line);
     onLog(appendLog);
@@ -1331,6 +1583,7 @@ textarea.diag[hidden] { display: none; }
       state.anchor.msg = null;
     }
     $.wrap.classList.toggle('dark', isDarkPage());
+    updateLang();
     if (!state.selecting && !state.busy) {
       scan('conv');
       scan('msg');
@@ -1341,10 +1594,11 @@ textarea.diag[hidden] { display: none; }
   function init(loaded) {
     settings = loaded;
     if (!settings.tab) settings.tab = /^\/i\/chat\/(?!requests)[^/]+/.test(location.pathname) ? 'msg' : 'conv';
+    XBD.setLang(XBD.detectLang(settings.lang));
     build();
     placePanel();
     addEventListener('resize', placePanel);
-    for (const t of INTERCEPT) addEventListener(t, intercept, true);
+    for (const type of INTERCEPT) addEventListener(type, intercept, true);
     addEventListener('keydown', onKey, true);
     addEventListener('keyup', onKey, true);
     $.host.style.display = 'none';
