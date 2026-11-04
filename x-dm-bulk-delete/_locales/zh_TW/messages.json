@@ -1,0 +1,32 @@
+{
+  "extName": {
+    "message": "X 私訊批次刪除",
+    "description": "擴充功能名稱，Chrome 線上應用程式商店和擴充功能管理頁顯示（最多 75 個字元）"
+  },
+  "extDescription": {
+    "message": "在 X（Twitter）私訊頁面批次勾選並刪除單則訊息或整個對話。在本機模擬點擊 X 自己的選單完成，資料不會離開你的裝置。",
+    "description": "擴充功能簡介（最多 132 個字元）"
+  },
+  "actionTitle": {
+    "message": "X 私訊批次刪除",
+    "description": "工具列按鈕的提示文字"
+  },
+  "popupStep1": {
+    "message": "開啟 X 的私訊頁（x.com/i/chat）"
+  },
+  "popupStep2": {
+    "message": "頁面右上角會出現批次刪除面板（面板文字為簡體中文）"
+  },
+  "popupStep3": {
+    "message": "選擇要刪除整個對話還是單則訊息，勾選後按刪除"
+  },
+  "popupOpen": {
+    "message": "開啟 X 私訊"
+  },
+  "popupNote": {
+    "message": "刪除是透過在你的瀏覽器裡模擬點擊 X 自己的選單完成，不讀取、不上傳任何訊息內容。本擴充功能不是 X 官方產品，與 X Corp. 無關。"
+  },
+  "popupSource": {
+    "message": "原始碼 / 意見回饋"
+  }
+}

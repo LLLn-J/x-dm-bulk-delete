@@ -38,10 +38,12 @@
     click('[data-tab="conv"]');
     const convs = mock.convs().slice(0, 14);
     const deleted = [convs[0], convs[4], convs[5], convs[6]];
-    XBD.log('开始删除 14 个会话…');
-    XBD.log(`✓ ${short(deleted[0].id)} 已删除`);
-    XBD.log(`– ${short(convs[3].id)} 跳过：群聊（没勾选“群聊也删除”）`);
-    for (const c of deleted.slice(1)) XBD.log(`✓ ${short(c.id)} 已删除`);
+    // 日志和面板用同一套文字表，跟着面板语言走
+    const { t } = XBD;
+    XBD.log(t('logRunStart', { count: t('count', { n: 14, kind: 'conv' }) }));
+    XBD.log(t('logOk', { id: short(deleted[0].id), note: t('nDeleted') }));
+    XBD.log(t('logSkip', { id: short(convs[3].id), reason: t('rGroupSkipped') }));
+    for (const c of deleted.slice(1)) XBD.log(t('logOk', { id: short(c.id), note: t('nDeleted') }));
     mock.removeConvs(deleted.map((c) => c.id));
     for (const c of convs) if (!deleted.includes(c)) state.selected.conv.add(c.id);
     click('[data-pane="conv"] [data-act="select"]');

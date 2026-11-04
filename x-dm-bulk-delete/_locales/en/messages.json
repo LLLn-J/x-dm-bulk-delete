@@ -10,5 +10,23 @@
   "actionTitle": {
     "message": "DM Bulk Delete for X",
     "description": "Tooltip of the toolbar button"
+  },
+  "popupStep1": {
+    "message": "Open X’s messages page (x.com/i/chat)"
+  },
+  "popupStep2": {
+    "message": "The bulk-delete panel appears at the top right"
+  },
+  "popupStep3": {
+    "message": "Choose conversations or messages, tick them, then click Delete"
+  },
+  "popupOpen": {
+    "message": "Open X messages"
+  },
+  "popupNote": {
+    "message": "Deletion works by clicking X’s own menus in your browser; no message content is read or uploaded. Not an official X product and not affiliated with X Corp."
+  },
+  "popupSource": {
+    "message": "Source / feedback"
   }
 }

@@ -5,7 +5,7 @@
 (() => {
   'use strict';
   const XBD = globalThis.XBD;
-  const { sleep, waitFor, queryAll, query, isShown, isLabel, fire, hover, unhover, activate, press, pressKey } = XBD;
+  const { sleep, waitFor, queryAll, query, isShown, isLabel, fire, hover, unhover, activate, press, pressKey, t } = XBD;
 
   const esc = (s) => CSS.escape(s);
   const SEL = {
@@ -138,7 +138,7 @@
   //   旧版：「删除全部」「仅删除我的」 → 弹出确认框
   async function deleteMessage(id, mode, positions) {
     let row = await locate(msg, id, positions);
-    if (!row) return fail('没找到这条消息（可能已被删掉或还没加载）');
+    if (!row) return fail(t('rMsgNotFound'));
     row.scrollIntoView({ block: 'center' });
     await sleep(150);
     await dismissPopups();
@@ -151,10 +151,10 @@
       hover(content); // 悬停后 X 才渲染消息旁边的「更多」按钮
       btn = await waitFor(() => row.querySelector(btnSel) || query(btnSel), { timeout: 900 + attempt * 600 });
     }
-    if (!btn) return fail('悬停后没出现「更多」按钮');
+    if (!btn) return fail(t('rNoMoreButton'));
 
     const menu = await openMenuFrom(btn);
-    if (!menu) return fail('「更多」菜单没打开');
+    if (!menu) return fail(t('rMenuNotOpen'));
     let everyoneUsed = false;
     try {
       const items = menuItems(menu);
@@ -171,13 +171,13 @@
       } else if (del) {
         first = del;
       } else if (forMe) {
-        if (mode === 'all-only') return skip('这条只能为自己删除');
+        if (mode === 'all-only') return skip(t('rOnlyForMe'));
         first = forMe;
       } else {
         const destructive = items.filter(isDestructive);
         if (destructive.length === 1) first = destructive[0];
       }
-      if (!first) return fail('菜单里没有删除选项');
+      if (!first) return fail(t('rNoDeleteOption'));
 
       const dialogsBefore = new Set(openDialogs());
       activate(first);
@@ -194,22 +194,22 @@
         },
         { timeout: 2500 },
       );
-      if (!next) return fail('点了删除后没出现确认');
+      if (!next) return fail(t('rNoConfirmShown'));
 
       if (next.dlg) {
         if (!(await confirmDialog(next.dlg, ['Delete for all', 'Delete for me', 'Delete', 'Confirm']))) {
-          return fail('确认框里找不到确认按钮');
+          return fail(t('rNoConfirmButton'));
         }
       } else if (next.justMe || next.everyone) {
         const choice = mode === 'me' ? next.justMe : next.everyone || (mode === 'all' ? next.justMe : null);
-        if (!choice) return skip('这条只能为自己删除');
+        if (!choice) return skip(t('rOnlyForMe'));
         everyoneUsed = choice === next.everyone;
         activate(choice);
       }
 
       const gone = await waitFor(() => !msg.find(id), { timeout: 6000, interval: 100 });
-      if (!gone) return fail('删除后消息还在列表里');
-      return { status: 'ok', note: everyoneUsed ? '已为所有人删除' : '已为我删除' };
+      if (!gone) return fail(t('rMsgStillThere'));
+      return { status: 'ok', note: t(everyoneUsed ? 'nDeletedForAll' : 'nDeletedForMe') };
     } finally {
       await dismissPopups();
       unhover(row);
@@ -220,9 +220,9 @@
   // 会话没有「更多」按钮，操作菜单是右键菜单：「删除对话」(群聊是「离开对话」) → 确认框
   async function deleteConversation(id, { leaveGroups }, positions) {
     const isGroup = conv.isGroup(id);
-    if (isGroup && !leaveGroups) return skip('群聊（没勾选“群聊也删除”）');
+    if (isGroup && !leaveGroups) return skip(t('rGroupSkipped'));
     let item = await locate(conv, id, positions);
-    if (!item) return fail('列表里没找到这个会话（可能已被删掉）');
+    if (!item) return fail(t('rConvNotFound'));
     item.scrollIntoView({ block: 'nearest' });
     await sleep(150);
     await dismissPopups();
@@ -233,24 +233,24 @@
     hover(trigger);
     fire(trigger, 'contextmenu', { button: 2, buttons: 2 });
     const menu = await waitFor(() => openMenus().find((m) => !before.has(m)), { timeout: 2000 });
-    if (!menu) return fail('右键菜单没打开');
+    if (!menu) return fail(t('rContextMenuNotOpen'));
     try {
       // 菜单先只有「在新标签页打开」，会话操作稍后才异步加进来
       const action = await waitFor(
         () => menuItems(menu).find((i) => isLabel(i, 'Delete conversation', 'Leave conversation')),
         { timeout: 3000 },
       );
-      if (!action) return fail('右键菜单里没有“删除对话”');
+      if (!action) return fail(t('rNoDeleteConv'));
 
       const dialogsBefore = new Set(openDialogs());
       activate(action);
       const dlg = await waitFor(() => openDialogs().find((d) => !dialogsBefore.has(d)), { timeout: 3000 });
       if (dlg && !(await confirmDialog(dlg, ['Confirm', 'Delete', 'Delete conversation', 'Leave conversation']))) {
-        return fail('确认框里找不到确认按钮');
+        return fail(t('rNoConfirmButton'));
       }
       const gone = await waitFor(() => !conv.find(id), { timeout: 8000, interval: 120 });
-      if (!gone) return fail('删除后会话还在列表里');
-      return { status: 'ok', note: isGroup ? '已退出并删除' : '已删除' };
+      if (!gone) return fail(t('rConvStillThere'));
+      return { status: 'ok', note: t(isGroup ? 'nLeftAndDeleted' : 'nDeleted') };
     } finally {
       await dismissPopups();
     }
@@ -280,13 +280,17 @@
       .getEntriesByType('resource')
       .map((e) => e.name)
       .find((n) => n.includes('/x-web/xchat/embed/'));
-    // 优先取 X Chat 根节点上的界面语言，而不是外层 <html lang>
-    const langEl = queryAll('[lang]').find((el) => el.getRootNode() !== document) || document.documentElement;
+    const xchatRoot = query('[data-testid="dm-inbox-panel"], [data-testid="dm-conversation-panel"]')?.closest('[lang]');
     return {
       path: location.pathname.replace(/\d{4,}/g, '#'),
       xchatBuild: build ? (build.match(/embed\/([0-9a-f]{8})/) || [])[1] : null,
       shadowRoots: XBD.roots(true).length - 1,
-      lang: langEl ? langEl.getAttribute('lang') : null,
+      lang: {
+        xchat: xchatRoot?.getAttribute('lang') ?? null,
+        page: document.documentElement.getAttribute('lang'),
+        browser: navigator.language,
+        panel: XBD.getLang(),
+      },
       counts: {
         inboxPanel: count('[data-testid="dm-inbox-panel"]'),
         convScroller: count(SEL.convScroller),

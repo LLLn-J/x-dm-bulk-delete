@@ -17,7 +17,9 @@
       del: 'Delete', delForMe: 'Delete for me', delForAll: 'Delete for all', justMe: 'Just me', everyone: 'Everyone',
       delFor: 'Delete this message for…', delMsg: 'Delete message', sure: 'Are you sure you want to delete this message?',
       reply: 'Reply', copy: 'Copy', edit: 'Edit', forward: 'Forward', pin: 'Pin', info: 'Info', report: 'Report', more: 'More',
-      chat: 'Chat', loading: 'Loading…', composer: 'Start a message',
+      chat: 'Chat', loading: 'Loading…', composer: 'Start a message', start: '— Start of conversation —',
+      group: (i) => `Group chat #${i}`, preview: (i) => `Latest message · ${i}`,
+      msg: (n, long) => (long ? `Message ${n}: a longer one to test multi-line bubbles and rows of different heights.` : `Message ${n}`),
     },
     'zh-cn': {
       openTab: 'Open in a new tab', markRead: '标记为已读', pinConv: '置顶对话', muteConv: '静音对话',
@@ -26,7 +28,9 @@
       del: '删除', delForMe: '仅删除我的', delForAll: '删除全部', justMe: '只有我', everyone: '每个人',
       delFor: '删除这条私信…', delMsg: '删除私信', sure: '确定要删除这条私信吗？',
       reply: '回复', copy: '复制', edit: '编辑', forward: '转发', pin: '置顶', info: '信息', report: '举报', more: '更多',
-      chat: '聊天', loading: '加载中…', composer: '开始写私信',
+      chat: '聊天', loading: '加载中…', composer: '开始写私信', start: '—— 对话开始 ——',
+      group: (i) => `群聊 #${i}`, preview: (i) => `最近一条消息 · ${i}`,
+      msg: (n, long) => (long ? `第 ${n} 条消息：这是一条比较长的消息，用来测试多行气泡和不同行高的虚拟滚动。` : `第 ${n} 条消息`),
     },
   }[LANG];
 
@@ -41,7 +45,7 @@
   function makeConv(i) {
     const group = i % 7 === 3;
     const id = group ? `g18${String(i).padStart(16, '0')}` : `${ME}-${1800000000000000000n + BigInt(i)}`;
-    return { id, group, name: group ? `群聊 #${i}` : `${NAMES[i % NAMES.length]} #${i}`, preview: `最近一条消息 · ${i}` };
+    return { id, group, name: group ? T.group(i) : `${NAMES[i % NAMES.length]} #${i}`, preview: T.preview(i) };
   }
   for (let i = 0; i < 30; i++) convs.push(makeConv(i));
 
@@ -58,7 +62,7 @@
     return {
       id,
       mine,
-      text: long ? `第 ${n} 条消息：这是一条比较长的消息，用来测试多行气泡和不同行高的虚拟滚动。` : `第 ${n} 条消息`,
+      text: T.msg(n, long),
       h: long ? 72 : 48,
     };
   }
@@ -288,7 +292,7 @@
       spinner.style.cssText = 'position:absolute;left:0;top:0;width:100%';
       msgSpacer.append(spinner);
     }
-    spinner.textContent = olderLoading ? T.loading : olderLeft ? '' : '—— 对话开始 ——';
+    spinner.textContent = olderLoading ? T.loading : olderLeft ? '' : T.start;
   }
 
   msgScroller.addEventListener('scroll', () => {

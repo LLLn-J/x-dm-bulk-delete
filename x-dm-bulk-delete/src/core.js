@@ -186,7 +186,7 @@
     logLines.push(line);
     if (logLines.length > 300) logLines.shift();
     for (const fn of logListeners) fn(line);
-    (level === 'error' ? console.warn : console.debug)('[X 私信批量删除]', msg);
+    (level === 'error' ? console.warn : console.debug)('[x-dm-bulk-delete]', msg);
   }
 
   const onLog = (fn) => logListeners.add(fn);
@@ -199,6 +199,7 @@
     msgFilter: 'all', // all | mine | theirs
     leaveGroups: false,
     delayMs: 800,
+    lang: 'auto', // auto | zh | en
     panel: { left: null, top: null, collapsed: false },
   };
   const chromeStorage = () => (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) || null;

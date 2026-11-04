@@ -2,10 +2,10 @@
 (() => {
   'use strict';
   const XBD = globalThis.XBD;
-  const { sleep, jitter, log, onLog, logLines, saveSettings, OWN_HOST_ATTR } = XBD;
+  const { sleep, jitter, log, onLog, logLines, saveSettings, OWN_HOST_ATTR, t } = XBD;
   const XC = XBD.xchat;
   const KINDS = { conv: XC.conv, msg: XC.msg };
-  const UNIT = { conv: '个会话', msg: '条消息' };
+  const count = (kind, n) => t('count', { kind, n });
   const HOMEPAGE = 'https://github.com/LLLn-J/x-dm-bulk-delete';
   const VERSION = (() => {
     try {
@@ -78,7 +78,7 @@ label.opt { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
 .progress .line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.log { max-height: 110px; overflow-y: auto; font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); background: var(--soft); border-radius: 8px; padding: 6px 8px; white-space: pre-wrap; word-break: break-all; }
+.log { max-height: 110px; overflow-y: auto; font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); background: var(--soft); border-radius: 8px; padding: 6px 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .log:empty { display: none; }
 .log .error { color: var(--danger); }
 .foot { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12px; }
@@ -105,59 +105,62 @@ textarea.diag[hidden] { display: none; }
   const HTML = `
 <div class="wrap">
   <div class="layer"></div>
-  <div class="shield" hidden><div class="banner">正在删除…删除期间请不要操作页面，按 Esc 或点面板上的「停止」可中断</div></div>
+  <div class="shield" hidden><div class="banner" data-i18n="shield"></div></div>
   <div class="panel">
     <div class="head" data-drag>
-      <b>私信批量删除</b><span class="badge" data-k="badge"></span>
-      <button class="icon" type="button" data-act="collapse" title="收起/展开">–</button>
+      <b data-i18n="title"></b><span class="badge" data-k="badge"></span>
+      <button class="icon" type="button" data-act="collapse" data-i18n-title="collapse">–</button>
     </div>
     <div class="body">
       <div class="tabs">
-        <button type="button" data-tab="conv">整个会话</button>
-        <button type="button" data-tab="msg">单条消息</button>
+        <button type="button" data-tab="conv" data-i18n="tabConv"></button>
+        <button type="button" data-tab="msg" data-i18n="tabMsg"></button>
       </div>
       <div class="pane" data-pane="conv">
-        <div class="stats">已选 <b data-k="conv-sel">0</b> 个 · 列表里当前显示 <b data-k="conv-vis">0</b> 个</div>
+        <div class="stats" data-k="conv-stats"></div>
         <div class="warn" data-k="conv-warn"></div>
         <div class="grid">
-          <button class="btn" type="button" data-act="select">进入选择模式</button>
-          <button class="btn" type="button" data-act="select-visible">全选当前显示</button>
-          <button class="btn" type="button" data-act="sweep">滚动加载并全选</button>
-          <button class="btn" type="button" data-act="clear">清空选择</button>
+          <button class="btn" type="button" data-act="select"></button>
+          <button class="btn" type="button" data-act="select-visible" data-i18n="selectVisible"></button>
+          <button class="btn" type="button" data-act="sweep" data-i18n="sweepConv"></button>
+          <button class="btn" type="button" data-act="clear" data-i18n="clear"></button>
         </div>
-        <label class="opt"><input type="checkbox" data-set="leaveGroups"> 群聊也删除（会退出群聊）</label>
-        <button class="danger" type="button" data-act="run">删除选中的会话</button>
+        <label class="opt"><input type="checkbox" data-set="leaveGroups"> <span data-i18n="leaveGroups"></span></label>
+        <button class="danger" type="button" data-act="run"></button>
       </div>
       <div class="pane" data-pane="msg" hidden>
-        <div class="stats">已选 <b data-k="msg-sel">0</b> 条 · 当前显示 <b data-k="msg-vis">0</b> 条</div>
+        <div class="stats" data-k="msg-stats"></div>
         <div class="warn" data-k="msg-warn"></div>
         <div class="grid">
-          <button class="btn" type="button" data-act="select">进入选择模式</button>
-          <button class="btn" type="button" data-act="select-visible">全选当前显示</button>
-          <button class="btn" type="button" data-act="sweep">加载全部历史并全选</button>
-          <button class="btn" type="button" data-act="clear">清空选择</button>
+          <button class="btn" type="button" data-act="select"></button>
+          <button class="btn" type="button" data-act="select-visible" data-i18n="selectVisible"></button>
+          <button class="btn" type="button" data-act="sweep" data-i18n="sweepMsg"></button>
+          <button class="btn" type="button" data-act="clear" data-i18n="clear"></button>
         </div>
-        <div class="field">全选时 <select data-set="msgFilter">
-          <option value="all">所有消息</option><option value="mine">只选我发的</option><option value="theirs">只选对方发的</option>
+        <div class="field"><span data-i18n="filterLabel"></span> <select data-set="msgFilter">
+          <option value="all" data-i18n="filterAll"></option><option value="mine" data-i18n="filterMine"></option><option value="theirs" data-i18n="filterTheirs"></option>
         </select></div>
-        <div class="field">删除方式 <select data-set="msgMode">
-          <option value="me">仅为我删除</option>
-          <option value="all">为所有人删除（不行就仅为我）</option>
-          <option value="all-only">只为所有人删除（不行就跳过）</option>
+        <div class="field"><span data-i18n="modeLabel"></span> <select data-set="msgMode">
+          <option value="me" data-i18n="modeMe"></option>
+          <option value="all" data-i18n="modeAll"></option>
+          <option value="all-only" data-i18n="modeAllOnly"></option>
         </select></div>
-        <button class="danger" type="button" data-act="run">删除选中的消息</button>
+        <button class="danger" type="button" data-act="run"></button>
       </div>
-      <div class="field">每条间隔 <input type="number" min="300" max="10000" step="100" data-set="delayMs"> 毫秒</div>
+      <div class="field"><span data-i18n="delayLabel"></span> <input type="number" min="300" max="10000" step="100" data-set="delayMs"> <span data-i18n="ms"></span></div>
+      <div class="field"><span data-i18n="langLabel"></span> <select data-set="lang">
+        <option value="auto" data-i18n="langAuto"></option><option value="zh">中文</option><option value="en">English</option>
+      </select></div>
       <div class="progress" hidden>
-        <div class="line"><span data-k="prog-text"></span><button class="btn" type="button" data-act="stop">停止</button></div>
+        <div class="line"><span data-k="prog-text"></span><button class="btn" type="button" data-act="stop" data-i18n="stop"></button></div>
         <div class="bar"><i data-k="prog-bar"></i></div>
       </div>
-      <div class="hint">选择模式下直接点列表里的行来勾选，按住 Shift 点击可连选，Esc 退出。删除时请让这个标签页保持在前台。</div>
+      <div class="hint" data-i18n="hint"></div>
       <div class="log" data-k="log"></div>
       <textarea class="diag" data-k="diag" readonly hidden></textarea>
       <div class="foot">
-        <button class="link" type="button" data-act="diag">复制诊断信息</button>
-        <span><a class="link" href="${HOMEPAGE}/issues" target="_blank" rel="noopener noreferrer">反馈问题</a> · v${VERSION}</span>
+        <button class="link" type="button" data-act="diag" data-i18n="copyDiag"></button>
+        <span><a class="link" href="${HOMEPAGE}/issues" target="_blank" rel="noopener noreferrer" data-i18n="feedback"></a> · v${VERSION}</span>
       </div>
     </div>
   </div>
@@ -321,13 +324,13 @@ textarea.diag[hidden] { display: none; }
     const kind = KINDS[kindKey];
     if (state.busy) return;
     if (!kind.scroller()) {
-      log(kindKey === 'conv' ? '当前页面没有会话列表' : '请先打开一个对话');
+      log(t(kindKey === 'conv' ? 'logNoConvList' : 'logOpenConv'));
       return;
     }
     state.busy = 'sweep';
     state.stop = false;
     setSelecting(true);
-    log(kindKey === 'conv' ? '向下滚动加载全部会话并全选…' : '向上滚动加载这个对话的全部历史并全选…');
+    log(t(kindKey === 'conv' ? 'logSweepConv' : 'logSweepMsg'));
     const sel = state.selected[kindKey];
     const meta = state.meta[kindKey];
     await XC.sweep(
@@ -342,7 +345,7 @@ textarea.diag[hidden] { display: none; }
       () => state.stop || !active,
     );
     state.busy = null;
-    log(state.stop ? `已停止加载，当前选中 ${sel.size} ${UNIT[kindKey]}` : `加载完毕，共选中 ${sel.size} ${UNIT[kindKey]}`);
+    log(t(state.stop ? 'logSweepStopped' : 'logSweepDone', { count: count(kindKey, sel.size) }));
     refresh();
     schedule();
   }
@@ -370,6 +373,20 @@ textarea.diag[hidden] { display: none; }
     return best;
   }
 
+  // X 有些步骤（比如右键「删除对话」后弹确认框）放在 requestAnimationFrame 里。页面不在前台渲染时
+  // （标签页在后台、窗口被挡住或最小化）它不会执行，有时 document.hidden 还是 false，所以直接看帧有没有在跑
+  const frameWithin = (ms) =>
+    Promise.race([new Promise((r) => requestAnimationFrame(() => r(true))), sleep(ms).then(() => false)]);
+
+  async function waitForRendering() {
+    if (await frameWithin(1000)) return true;
+    log(t('logPaused'));
+    while (!state.stop && active) {
+      if (await frameWithin(1000)) return true;
+    }
+    return false;
+  }
+
   async function run(kindKey) {
     const sel = state.selected[kindKey];
     if (state.busy || !sel.size) return;
@@ -379,17 +396,12 @@ textarea.diag[hidden] { display: none; }
     const positions = { get: (id) => state.meta[kindKey].get(id)?.pos };
     const pending = new Set(sel);
     $.shield.hidden = false;
-    log(`开始删除 ${prog.total} ${UNIT[kindKey]}…`);
+    log(t('logRunStart', { count: count(kindKey, prog.total) }));
     refresh();
     schedule();
     let streak = 0;
     while (pending.size && !state.stop && active) {
-      // X 的部分操作走 requestAnimationFrame，标签页在后台时不会执行，先暂停等切回来
-      if (document.hidden) {
-        log('标签页在后台，已暂停；切回这个标签页后自动继续');
-        while (document.hidden && !state.stop) await sleep(500);
-        if (state.stop) break;
-      }
+      if (!(await waitForRendering())) break;
       const id = nextTarget(kindKey, pending);
       pending.delete(id);
       state.flags[kindKey].set(id, 'current');
@@ -400,7 +412,7 @@ textarea.diag[hidden] { display: none; }
             ? await XC.deleteConversation(id, { leaveGroups: settings.leaveGroups }, positions)
             : await XC.deleteMessage(id, settings.msgMode, positions);
       } catch (err) {
-        res = { status: 'fail', reason: '脚本出错：' + ((err && err.message) || err) };
+        res = { status: 'fail', reason: t('logScriptError', { msg: (err && err.message) || String(err) }) };
       }
       state.flags[kindKey].delete(id);
       prog.done++;
@@ -409,26 +421,26 @@ textarea.diag[hidden] { display: none; }
         streak = 0;
         sel.delete(id);
         state.meta[kindKey].delete(id);
-        log(`✓ ${short(id)} ${res.note}`);
+        log(t('logOk', { id: short(id), note: res.note }));
       } else if (res.status === 'skip') {
         prog.skip++;
         streak = 0;
-        log(`– ${short(id)} 跳过：${res.reason}`);
+        log(t('logSkip', { id: short(id), reason: res.reason }));
       } else {
         prog.fail++;
         streak++;
         state.flags[kindKey].set(id, 'failed');
-        log(`✗ ${short(id)} 失败：${res.reason}`, 'error');
+        log(t('logFail', { id: short(id), reason: res.reason }), 'error');
       }
       refresh();
       if (streak >= 3) {
-        log('连续 3 次失败，已自动停止。可能是 X 改了界面或触发了频率限制，稍后再试；仍不行请点“复制诊断信息”。', 'error');
+        log(t('logStreak'), 'error');
         break;
       }
       if (pending.size && !state.stop) await sleep(jitter(settings.delayMs));
     }
-    if (state.stop) log('已手动停止');
-    log(`结束：成功 ${prog.ok}，跳过 ${prog.skip}，失败 ${prog.fail}（失败的仍保持勾选，可再次删除重试）`);
+    if (state.stop) log(t('logStopped'));
+    log(t('logRunEnd', prog));
     state.busy = null;
     $.shield.hidden = true;
     if (!state.selecting) clearMarks();
@@ -442,6 +454,12 @@ textarea.diag[hidden] { display: none; }
     v = String(v);
     if (el.textContent !== v) el.textContent = v;
   };
+  const setHTML = (el, html) => {
+    if (el.dataset.html !== html) {
+      el.dataset.html = html;
+      el.innerHTML = html;
+    }
+  };
 
   function refresh() {
     if (!$.panel) return;
@@ -452,40 +470,37 @@ textarea.diag[hidden] { display: none; }
     }
     for (const p of $.panes) p.hidden = p.dataset.pane !== tab;
     for (const key of ['conv', 'msg']) {
-      setText($[`${key}-sel`], state.selected[key].size);
-      setText($[`${key}-vis`], state.visible[key].filter((it) => it.visible).length);
+      const vis = state.visible[key].filter((it) => it.visible).length;
+      setHTML($[`${key}-stats`], t(key === 'conv' ? 'convStats' : 'msgStats', { sel: state.selected[key].size, vis }));
     }
     const pane = $.panes.find((p) => p.dataset.pane === tab);
     const n = state.selected[tab].size;
     const available = !!KINDS[tab].scroller();
-    setText(
-      $[`${tab}-warn`],
-      available ? '' : tab === 'conv' ? '当前页面没看到会话列表（窄屏下请先返回列表）' : '请先在左侧打开一个对话',
-    );
+    setText($[`${tab}-warn`], available ? '' : t(tab === 'conv' ? 'warnNoConv' : 'warnNoMsg'));
     const armed = Date.now() < state.armedUntil;
     for (const b of pane.querySelectorAll('[data-act]')) {
       const act = b.dataset.act;
       if (act === 'select') {
         b.classList.toggle('on', state.selecting);
-        setText(b, state.selecting ? '退出选择模式' : '进入选择模式');
+        setText(b, t(state.selecting ? 'stopSelect' : 'startSelect'));
         b.disabled = !!state.busy;
       } else if (act === 'run') {
         b.disabled = !!state.busy || !n;
         b.classList.toggle('armed', armed);
-        setText(b, armed ? `再点一次：确认删除 ${n} ${UNIT[tab]}（不可撤销）` : `删除选中的 ${n} ${UNIT[tab]}`);
+        setText(b, t(armed ? 'runArmed' : 'runBtn', { n, kind: tab }));
       } else {
         b.disabled = !!state.busy || (act !== 'clear' && !available);
       }
     }
     const total = state.selected.conv.size + state.selected.msg.size;
     const p = state.progress;
-    setText($.badge, state.busy === 'run' && p ? `${p.done}/${p.total}` : total ? `已选 ${total}` : '');
+    setText($.badge, state.busy === 'run' && p ? `${p.done}/${p.total}` : total ? t('badgeSel', { n: total }) : '');
     $.progress.hidden = !state.busy;
     if (state.busy === 'run' && p) {
-      setText($['prog-text'], `${p.done}/${p.total} · 成功 ${p.ok} · 跳过 ${p.skip} · 失败 ${p.fail}`);
+      setText($['prog-text'], t('progress', p));
       $['prog-bar'].style.width = `${(p.done / p.total) * 100}%`;
     } else if (state.busy === 'sweep') {
-      setText($['prog-text'], `正在滚动加载… 已选 ${state.selected[tab].size}`);
+      setText($['prog-text'], t('sweeping', { n: state.selected[tab].size }));
       $['prog-bar'].style.width = '100%';
     }
   }
@@ -493,8 +508,9 @@ textarea.diag[hidden] { display: none; }
   function appendLog(line) {
     if (!$.log) return;
     const div = document.createElement('div');
-    const t = line.time;
-    div.textContent = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}:${String(t.getSeconds()).padStart(2, '0')} ${line.msg}`;
+    const time = line.time;
+    const pad = (v) => String(v).padStart(2, '0');
+    div.textContent = `${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())} ${line.msg}`;
     if (line.level === 'error') div.className = 'error';
     $.log.append(div);
     while ($.log.childElementCount > 200) $.log.firstElementChild.remove();
@@ -505,19 +521,26 @@ textarea.diag[hidden] { display: none; }
     const info = {
       version: VERSION,
       ...XC.diagnostics(),
-      settings: { tab: settings.tab, msgMode: settings.msgMode, msgFilter: settings.msgFilter, leaveGroups: settings.leaveGroups, delayMs: settings.delayMs },
+      settings: {
+        tab: settings.tab,
+        msgMode: settings.msgMode,
+        msgFilter: settings.msgFilter,
+        leaveGroups: settings.leaveGroups,
+        delayMs: settings.delayMs,
+        lang: settings.lang,
+      },
       selected: { conv: state.selected.conv.size, msg: state.selected.msg.size },
       log: logLines.slice(-40).map((l) => l.msg),
     };
     const text = JSON.stringify(info, null, 2);
     try {
       await navigator.clipboard.writeText(text);
-      log('诊断信息已复制到剪贴板（只有页面结构统计和日志，不含消息内容）');
+      log(t('logDiagCopied'));
     } catch {
       $.diag.hidden = false;
       $.diag.value = text;
       $.diag.select();
-      log('无法写入剪贴板，诊断信息显示在下方文本框里');
+      log(t('logDiagFallback'));
     }
   }
 
@@ -532,7 +555,7 @@ textarea.diag[hidden] { display: none; }
     } else if (act === 'select-visible') {
       const n = selectVisible(tab);
       setSelecting(true);
-      log(`新勾选了 ${n} ${UNIT[tab]}`);
+      log(t('logSelected', { count: count(tab, n) }));
     } else if (act === 'sweep') {
       sweepSelect(tab);
     } else if (act === 'clear') {
@@ -586,6 +609,23 @@ textarea.diag[hidden] { display: none; }
     });
   }
 
+  // 把面板上的静态文字换成当前语言；动态文字在 refresh 里用 t() 生成
+  function applyLang() {
+    $.wrap.setAttribute('lang', XBD.getLang() === 'zh' ? 'zh-CN' : 'en');
+    for (const el of $.shadow.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+    for (const el of $.shadow.querySelectorAll('[data-i18n-title]')) el.title = t(el.dataset.i18nTitle);
+    refresh();
+  }
+
+  // 手动选的语言优先，否则跟随 X / 浏览器；X Chat 常比面板晚加载，所以 tick 里也会调用
+  function updateLang() {
+    const next = XBD.detectLang(settings.lang);
+    if (next !== XBD.getLang()) {
+      XBD.setLang(next);
+      applyLang();
+    }
+  }
+
   function isDarkPage() {
     const parse = (el) => (getComputedStyle(el).backgroundColor.match(/[\d.]+/g) || []).map(Number);
     let rgba = parse(document.body);
@@ -609,6 +649,7 @@ textarea.diag[hidden] { display: none; }
     shadow.append(tpl.content);
 
     $.host = host;
+    $.shadow = shadow;
     $.wrap = shadow.querySelector('.wrap');
     $.panel = shadow.querySelector('.panel');
     $.layer = shadow.querySelector('.layer');
@@ -644,10 +685,12 @@ textarea.diag[hidden] { display: none; }
           input.value = settings[key];
         } else settings[key] = input.value;
         saveSettings(settings);
+        if (key === 'lang') updateLang();
         refresh();
         schedule();
       });
     }
+    applyLang();
     enableDrag();
     for (const line of logLines) appendLog(line);
     onLog(appendLog);
@@ -717,6 +760,7 @@ textarea.diag[hidden] { display: none; }
       state.anchor.msg = null;
     }
     $.wrap.classList.toggle('dark', isDarkPage());
+    updateLang();
     if (!state.selecting && !state.busy) {
       scan('conv');
       scan('msg');
@@ -727,10 +771,11 @@ textarea.diag[hidden] { display: none; }
   function init(loaded) {
     settings = loaded;
     if (!settings.tab) settings.tab = /^\/i\/chat\/(?!requests)[^/]+/.test(location.pathname) ? 'msg' : 'conv';
+    XBD.setLang(XBD.detectLang(settings.lang));
     build();
     placePanel();
     addEventListener('resize', placePanel);
-    for (const t of INTERCEPT) addEventListener(t, intercept, true);
+    for (const type of INTERCEPT) addEventListener(type, intercept, true);
     addEventListener('keydown', onKey, true);
     addEventListener('keyup', onKey, true);
     $.host.style.display = 'none';

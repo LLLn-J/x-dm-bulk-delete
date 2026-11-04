@@ -30,7 +30,12 @@ USERSCRIPT_RAW = f"https://raw.githubusercontent.com/{REPO}/userscript"
 AUTHOR = "Xuan Hu"
 LICENSE = "MIT"
 # 油猴里各语言的键名（Greasy Fork / Tampermonkey 用 BCP 47 语言代码）
-USERSCRIPT_LOCALES = {"zh_CN": "zh-CN", "en": "en"}
+USERSCRIPT_LOCALES = {"en": "en", "zh_CN": "zh-CN", "zh_TW": "zh-TW"}
+# 读出 i18n.js 里中英文两张表的键（i18n.js 只在函数里用到浏览器 API，node 里可以直接加载）
+NODE_DUMP_STRINGS = (
+    "globalThis.XBD = {}; require(process.argv[1]); const s = globalThis.XBD.STRINGS;"
+    "console.log(JSON.stringify(Object.fromEntries(Object.entries(s).map(([k, v]) => [k, Object.keys(v)]))));"
+)
 
 
 def fail(msg):
@@ -75,14 +80,45 @@ def check(manifest, messages):
     for rel in referenced:
         if not (EXT / rel).is_file():
             fail(f"manifest 引用的文件不存在：{rel}")
+    # _locales：每种语言的条目要和默认语言一致，弹窗用到的条目都要有
+    keys = set(messages[default])
+    for locale, msgs in messages.items():
+        if set(msgs) != keys:
+            fail(f"_locales/{locale} 和默认语言的条目不一致：{sorted(set(msgs) ^ keys)}")
+    popup = (EXT / manifest["action"]["default_popup"]).read_text(encoding="utf-8")
+    for key in re.findall(r'data-i18n="(\w+)"', popup):
+        if key not in keys:
+            fail(f"弹窗用到的 {key} 不在 _locales 里")
     node = shutil.which("node")
     if node:
         for js in sorted(EXT.rglob("*.js")):
             r = subprocess.run([node, "--check", str(js)], capture_output=True, text=True)
             if r.returncode:
                 fail(f"语法错误 {js.relative_to(ROOT)}\n{r.stderr}")
+        check_panel_strings(node)
     else:
-        print("（没装 node，跳过 JS 语法检查）")
+        print("（没装 node，跳过 JS 语法检查和面板文字检查）")
+
+
+def check_panel_strings(node):
+    """面板的中英文两张表键要一样，代码里用到的键都要在表里"""
+    r = subprocess.run([node, "-e", NODE_DUMP_STRINGS, str(EXT / "src" / "i18n.js")], capture_output=True, text=True)
+    if r.returncode:
+        fail(f"加载 i18n.js 失败\n{r.stderr}")
+    tables = {lang: set(k) for lang, k in json.loads(r.stdout).items()}
+    zh, en = tables["zh"], tables["en"]
+    if zh != en:
+        fail(f"面板文字的中英文条目不一致：只有中文 {sorted(zh - en)}，只有英文 {sorted(en - zh)}")
+    used = set()
+    for js in [*sorted((EXT / "src").glob("*.js")), ROOT / "test" / "demo.js"]:
+        src = js.read_text(encoding="utf-8")
+        used |= set(re.findall(r'data-i18n(?:-title)?="(\w+)"', src))
+        for call in re.findall(r"\bt\(([^()]*)", src):  # 也覆盖 t(cond ? 'a' : 'b')
+            call = re.sub(r"[=!]==?\s*'\w+'", "", call)  # 去掉 kind === 'conv' 这类比较里的字面量
+            used |= set(re.findall(r"'(\w+)'", call))
+    missing = sorted(used - zh)
+    if missing:
+        fail(f"代码里用到但面板文字表里没有：{missing}")
 
 
 def build_zip(version):

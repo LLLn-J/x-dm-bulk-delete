@@ -2,7 +2,7 @@
 <h1 align="center">X 私信批量删除</h1>
 <p align="center">在 X（Twitter）私信页批量勾选并删除单条消息或整个会话<br><a href="#english">English</a></p>
 
-![批量勾选会话](store/screenshots/1-conversations.png)
+![批量勾选会话](store/screenshots/zh-CN/1-conversations.png)
 
 X 的私信（现在叫 Chat，地址 `x.com/i/chat`）只能一条条删。这个扩展在私信页加一个悬浮面板，让你：
 
@@ -32,7 +32,7 @@ X 的私信（现在叫 Chat，地址 `x.com/i/chat`）只能一条条删。这�
 
 ### 删除单条消息
 
-![批量勾选消息](store/screenshots/2-messages.png)
+![批量勾选消息](store/screenshots/zh-CN/2-messages.png)
 
 1. 先打开一个对话，面板切到「单条消息」，进入选择模式
 2. 点消息行勾选（Shift 连选），或用「全选当前显示」「加载全部历史并全选」；「全选时」可限定只选我发的或只选对方发的
@@ -44,7 +44,7 @@ X 的私信（现在叫 Chat，地址 `x.com/i/chat`）只能一条条删。这�
 
 ### 删除过程中
 
-![删除进行中](store/screenshots/3-deleting.png)
+![删除进行中](store/screenshots/zh-CN/3-deleting.png)
 
 - 页面被一层透明遮罩挡住，防止误触打断流程；按 Esc 或点「停止」随时中断
 - 请让标签页保持在前台，切到后台会自动暂停，切回来继续
@@ -62,7 +62,7 @@ X Chat 渲染在 shadow DOM 里，扩展用的元素标识（`data-testid` 等�
 - 删除不可撤销
 - 「为所有人删除」只对你自己发的消息有效（群管理员在自己管理的群里也能删别人的）
 - 「仅为我删除」不会让对方那边的消息消失；删除会话也只是从你的收件箱移除，对方仍能看到
-- 面板界面目前只有简体中文
+- 面板有中文和英文两种界面：自动跟随 X 的界面语言（取不到时跟随浏览器语言），也可以在面板里的「界面语言」手动切换
 - X 改版后如果失效，请点面板底部「复制诊断信息」，[提交 issue](https://github.com/LLLn-J/x-dm-bulk-delete/issues/new/choose) 时贴上（里面只有页面结构统计和日志，不含消息内容）
 
 ## 隐私
@@ -76,6 +76,7 @@ x-dm-bulk-delete/        扩展本体（Chrome 里加载这个文件夹）
   manifest.json, _locales/, popup.html, popup.js, icons/
   src/labels.js          42 种界面语言的按钮文字（tools/update_labels.py 生成）
   src/core.js            穿透 shadow DOM 的查询、模拟鼠标事件、设置存储
+  src/i18n.js            面板文字（中文 / English）和界面语言判断
   src/xchat.js           X Chat 的页面结构和删除流程
   src/ui.js              面板、勾选标记、选择模式、删除队列
   src/main.js            入口
@@ -103,10 +104,13 @@ docs/PUBLISHING.md       发布流程
 
 **DM Bulk Delete for X** adds a floating panel to X's messages page (`x.com/i/chat`) so you can tick many messages or whole conversations and delete them in one go. X itself only lets you delete them one at a time.
 
+![Selecting conversations](store/screenshots/en/1-conversations.png)
+
 - **Install**: Chrome Web Store (link coming after review), [userscript one-click install](https://raw.githubusercontent.com/LLLn-J/x-dm-bulk-delete/userscript/x-dm-bulk-delete.user.js) for Tampermonkey / Violentmonkey, or download the zip from [Releases](https://github.com/LLLn-J/x-dm-bulk-delete/releases/latest) and use "Load unpacked" on `chrome://extensions`.
-- **Use**: open `x.com/i/chat`, pick "整个会话" (conversations) or "单条消息" (messages), click "进入选择模式" (selection mode), tick rows (Shift-click for ranges, or the select-all buttons), then click the red delete button twice. Esc stops a run at any time.
+- **Use**: open `x.com/i/chat`, pick **Conversations** or **Messages**, click **Start selecting**, tick rows (Shift-click for ranges, or use **Select all shown** / **Load all & select**), choose how to delete, then click the red delete button twice. Esc stops a run at any time.
 - **How it works**: X DMs are end-to-end encrypted and deletions must be signed by the client, so the extension simply clicks through X's own menus for you. It recognises the menu labels in all 42 interface languages of X Chat.
 - **Privacy**: everything runs in your browser. No network requests and no data leaves your device; the only permission is `storage` for panel settings. See [PRIVACY.md](PRIVACY.md).
-- **Notes**: deletion cannot be undone; "Delete for everyone" only works on your own messages; the panel's interface is currently in Simplified Chinese.
+- **Language**: the panel is in English or Chinese. It follows X's interface language (falling back to your browser's) and can be switched under **Language** in the panel.
+- **Notes**: deletion cannot be undone; "Delete for everyone" only works on your own messages; "Delete for me" and deleting a conversation only affect your side.
 
 MIT licensed. Not affiliated with or endorsed by X Corp.

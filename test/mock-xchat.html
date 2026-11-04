@@ -21,7 +21,7 @@
       const query = new URLSearchParams(location.search);
       const files = query.has('userscript')
         ? ['../dist/x-dm-bulk-delete.user.js']
-        : ['labels.js', 'core.js', 'xchat.js', 'ui.js', 'main.js'].map((f) => '../x-dm-bulk-delete/src/' + f);
+        : ['labels.js', 'core.js', 'i18n.js', 'xchat.js', 'ui.js', 'main.js'].map((f) => '../x-dm-bulk-delete/src/' + f);
       if (query.has('demo')) {
         files.push('demo.js');
         document.getElementById('mock-status').hidden = true;

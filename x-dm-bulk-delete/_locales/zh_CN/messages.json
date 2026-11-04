@@ -10,5 +10,23 @@
   "actionTitle": {
     "message": "X 私信批量删除",
     "description": "工具栏按钮的悬停提示"
+  },
+  "popupStep1": {
+    "message": "打开 X 的私信页（x.com/i/chat）"
+  },
+  "popupStep2": {
+    "message": "页面右上角会出现「私信批量删除」面板"
+  },
+  "popupStep3": {
+    "message": "选「整个会话」或「单条消息」，勾选后点删除"
+  },
+  "popupOpen": {
+    "message": "打开 X 私信"
+  },
+  "popupNote": {
+    "message": "删除通过模拟点击 X 自己的菜单完成，不读取、不上传任何消息内容。本扩展不是 X 官方产品，与 X Corp. 无关。"
+  },
+  "popupSource": {
+    "message": "源码 / 反馈"
   }
 }

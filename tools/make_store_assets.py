@@ -3,9 +3,10 @@
 
     python3 tools/make_store_assets.py
 
-    store/screenshots/1-conversations.png   1280×800  批量勾选会话
-    store/screenshots/2-messages.png        1280×800  批量勾选消息、选删除方式
-    store/screenshots/3-deleting.png        1280×800  删除进行中
+    store/screenshots/<语言>/1-conversations.png   1280×800  批量勾选会话
+    store/screenshots/<语言>/2-messages.png        1280×800  批量勾选消息、选删除方式
+    store/screenshots/<语言>/3-deleting.png        1280×800  删除进行中
+        <语言> 是 zh-CN 和 en：仿 X 界面切成对应语言，扩展面板自动跟着切换
     store/promo-440x280.png                 小宣传图
     store/promo-1400x560.png                大宣传图（可选）
     store/icon-128.png                      商店图标（就是扩展里的 icon128）
@@ -26,6 +27,8 @@ import tempfile
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 STORE = ROOT / "store"
 SHOTS = [("1-conversations", "conv"), ("2-messages", "msg"), ("3-deleting", "run")]
+# 截图目录名 → 测试页的 X 界面语言参数
+SCREENSHOT_LANGS = [("zh-CN", "zh-cn"), ("en", "en")]
 CHROME_CANDIDATES = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/Applications/Chromium.app/Contents/MacOS/Chromium",
@@ -81,8 +84,10 @@ def main():
 
     version = json.loads((ROOT / "x-dm-bulk-delete" / "manifest.json").read_text(encoding="utf-8"))["version"]
     mock = (ROOT / "test" / "mock-xchat.html").as_uri()
-    for name, demo in SHOTS:
-        capture(chrome, f"{mock}?demo={demo}&version={version}", STORE / "screenshots" / f"{name}.png", 1280, 800)
+    for folder, lang in SCREENSHOT_LANGS:
+        for name, demo in SHOTS:
+            url = f"{mock}?demo={demo}&lang={lang}&version={version}"
+            capture(chrome, url, STORE / "screenshots" / folder / f"{name}.png", 1280, 800)
     promo = (STORE / "promo.html").as_uri()
     capture(chrome, promo, STORE / "promo-440x280.png", 440, 280)
     capture(chrome, promo, STORE / "promo-1400x560.png", 1400, 560)
