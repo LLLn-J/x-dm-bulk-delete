@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Everything on this page is served from this site: no cookies, analytics, third-party scripts or web fonts. This policy enforces it. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>DM Bulk Delete for X — delete X (Twitter) DMs in bulk</title>
+  <meta name="description" content="Bulk-delete X (Twitter) DMs: tick whole conversations or single messages and remove them in one go. Free, open source, runs entirely in your browser.">
+  <link rel="canonical" href="https://llln-j.github.io/x-dm-bulk-delete/">
+  <meta name="theme-color" content="#f6f5f1">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/icon-128.png" sizes="128x128" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icon-128.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="DM Bulk Delete for X">
+  <meta property="og:title" content="DM Bulk Delete for X — delete X DMs in bulk">
+  <meta property="og:description" content="Tick whole conversations or single messages on x.com/i/chat and delete them in one go. Free, open source, and nothing leaves your browser.">
+  <meta property="og:url" content="https://llln-j.github.io/x-dm-bulk-delete/">
+  <meta property="og:image" content="https://llln-j.github.io/x-dm-bulk-delete/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="DM Bulk Delete for X: a selection panel on X’s chat page with several conversations ticked for deletion.">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DM Bulk Delete for X — delete X DMs in bulk">
+  <meta name="twitter:description" content="Tick whole conversations or single messages on x.com/i/chat and delete them in one go. Free, open source, and nothing leaves your browser.">
+  <meta name="twitter:image" content="https://llln-j.github.io/x-dm-bulk-delete/assets/og-image.png">
+  <meta name="twitter:image:alt" content="DM Bulk Delete for X: a selection panel on X’s chat page with several conversations ticked for deletion.">
+
+  <link rel="stylesheet" href="assets/site.css">
+  <script src="config.js" defer></script>
+  <script src="assets/site.js" defer></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "DM Bulk Delete for X",
+    "alternateName": "X 私信批量删除",
+    "description": "Browser extension and userscript that bulk-deletes X (Twitter) direct messages and whole conversations on x.com/i/chat. Runs entirely in the browser; no data leaves the device.",
+    "applicationCategory": "BrowserApplication",
+    "operatingSystem": "Chrome, Edge, Firefox, Safari",
+    "url": "https://llln-j.github.io/x-dm-bulk-delete/",
+    "image": "https://llln-j.github.io/x-dm-bulk-delete/assets/og-image.png",
+    "screenshot": "https://llln-j.github.io/x-dm-bulk-delete/assets/shot-conversations.png",
+    "installUrl": "https://greasyfork.org/en/scripts/604053-dm-bulk-delete-for-x",
+    "downloadUrl": "https://github.com/LLLn-J/x-dm-bulk-delete/releases/latest",
+    "license": "https://github.com/LLLn-J/x-dm-bulk-delete/blob/main/LICENSE",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "sameAs": [
+      "https://github.com/LLLn-J/x-dm-bulk-delete",
+      "https://greasyfork.org/en/scripts/604053-dm-bulk-delete-for-x"
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.8 2.6 20h18.8L12 3.8Z"/><path d="M12 10v4.4M12 17.3v.1"/></symbol>
+    <symbol id="i-double-check" viewBox="0 0 24 24"><path d="M2.5 12.8 6.8 17 15 8.2M11.6 16.4l.6.6L21 8.2"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6" rx="1"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.6 1.8M9.5 2.8h5"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></symbol>
+    <symbol id="i-retry" viewBox="0 0 24 24"><path d="M19.5 12.5a7.5 7.5 0 1 1-2.2-5.8"/><path d="M19.5 4.5v4.5H15"/></symbol>
+    <symbol id="i-log" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11M4.5 6.5h.1M4.5 12h.1M4.5 17.5h.1"/></symbol>
+    <symbol id="i-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></symbol>
+  </svg>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="./">
+        <img src="assets/icon-128.png" width="32" height="32" alt="">
+        <span>DM Bulk Delete <span class="brand-for">for X</span></span>
+      </a>
+      <nav class="site-nav" aria-label="Sections">
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </nav>
+      <div class="header-actions">
+        <a class="header-github" href="https://github.com/LLLn-J/x-dm-bulk-delete">
+          <svg class="icon icon--fill" aria-hidden="true" focusable="false"><use href="#i-github"/></svg>
+          <span class="header-github-label">GitHub</span>
+        </a>
+        <a class="btn btn--primary btn--sm" href="#install">Install</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap">
+        <p class="kicker">Free browser extension &amp; userscript</p>
+        <h1 id="hero-title" class="hero-title">Delete X DMs in bulk.<br><span>Not one at a time.</span></h1>
+
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="hero-lede">X (formerly Twitter) only lets you delete DMs one by one. DM Bulk Delete adds a small panel to <code>x.com/i/chat</code>: tick whole conversations or single messages, confirm twice, and it works through X’s own delete menus for you — entirely inside your browser.</p>
+
+            <div class="cta-row">
+              <a class="btn btn--primary" href="https://greasyfork.org/en/scripts/604053-dm-bulk-delete-for-x">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>
+                Install userscript <span class="btn-meta">Greasy Fork</span>
+              </a>
+              <span class="btn btn--pending" data-cws-pending>
+                <span class="pending-dot" aria-hidden="true"></span>
+                Chrome Web Store <span class="btn-meta">pending review</span>
+              </span>
+              <a class="btn btn--secondary" href="#install" data-cws-link data-cws-live hidden>
+                Add to Chrome <span class="btn-meta">Chrome Web Store</span>
+              </a>
+            </div>
+            <p class="cta-alt">The userscript runs in <a href="https://www.tampermonkey.net/">Tampermonkey</a> or <a href="https://violentmonkey.github.io/">Violentmonkey</a>. Prefer a regular extension? <a href="#install">See every install option</a>.</p>
+
+            <ul class="proof" role="list">
+              <li>Runs entirely in your browser</li>
+              <li>No network requests, no analytics</li>
+              <li>Open source under the MIT License</li>
+            </ul>
+
+            <p class="hero-warning">
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-alert"/></svg>
+              <span><strong>Deletion is permanent.</strong> There’s no undo — <a href="#before-you-start">back up anything you want to keep</a> before you start.</span>
+            </p>
+            <p class="disclaimer">An independent open-source project. Not affiliated with or endorsed by X&nbsp;Corp.</p>
+          </div>
+
+          <figure class="hero-shot">
+            <div class="shot">
+              <div class="shot-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+              <picture>
+                <source srcset="assets/shot-conversations.webp" type="image/webp">
+                <img src="assets/shot-conversations.png" width="1280" height="800" fetchpriority="high" decoding="async" alt="The DM Bulk Delete panel open on X’s chat page. Six conversations in the list on the left are ticked, and the panel offers a red button labelled “Delete 6 selected conversations”.">
+              </picture>
+            </div>
+            <figcaption><span class="fig">Fig. 1</span> <span>Six conversations ticked and ready to go. Real panel, sample data.</span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section" aria-labelledby="features-title">
+      <div class="wrap">
+        <div class="split">
+          <div class="split-copy">
+            <p class="kicker">01 — Select</p>
+            <h2 id="features-title" class="display">Two modes. One&nbsp;panel.</h2>
+            <p class="section-lede">Clear whole conversations out of your inbox, or prune single messages inside a chat. Either way, you tick exactly what should go — then choose how it goes.</p>
+          </div>
+
+          <figure class="split-media">
+            <div class="shot">
+              <div class="shot-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+              <picture>
+                <source srcset="assets/shot-messages.webp" type="image/webp">
+                <img src="assets/shot-messages.png" width="1280" height="800" loading="lazy" decoding="async" alt="Messages mode: five messages in the open chat are ticked, and the panel’s Delete setting reads “For everyone (else for me)” above a red “Delete 5 selected messages” button.">
+              </picture>
+            </div>
+            <figcaption><span class="fig">Fig. 2</span> <span>Messages mode: five messages ticked, set to delete for everyone where X allows it.</span></figcaption>
+          </figure>
+        </div>
+
+        <div class="modes">
+          <article class="mode" aria-labelledby="mode-conversations">
+            <h3 id="mode-conversations">Conversations</h3>
+            <ul class="ticks" role="list">
+              <li>Works in your inbox and in <strong>Message requests</strong>.</li>
+              <li>Click to tick, Shift-click to tick a range — or use <strong>Select all shown</strong>, or <strong>Load all &amp; select</strong> to scroll through the entire list for you.</li>
+              <li>Group chats are skipped unless you turn on <strong>Also delete group chats (leaves them)</strong>: on X, deleting a group conversation means leaving the group.</li>
+            </ul>
+          </article>
+
+          <article class="mode" aria-labelledby="mode-messages">
+            <h3 id="mode-messages">Messages</h3>
+            <ul class="ticks" role="list">
+              <li>Tick single messages in the open chat: click, or Shift-click for a range.</li>
+              <li>Use <strong>Select all shown</strong>, or <strong>Load all &amp; select</strong> to pull in the chat’s full history first.</li>
+              <li>Limit <strong>Select all</strong> to the messages you sent, or to the ones you received.</li>
+            </ul>
+          </article>
+
+          <article class="mode" aria-labelledby="mode-delete">
+            <h3 id="mode-delete">How messages go</h3>
+            <dl class="delete-modes">
+              <div>
+                <dt>For me only</dt>
+                <dd>Removes messages from your side. Works on any message.</dd>
+              </div>
+              <div>
+                <dt>For everyone (else for me)</dt>
+                <dd>Your own messages go for everyone; the other person’s fall back to “for me”.</dd>
+              </div>
+              <div>
+                <dt>For everyone only (else skip)</dt>
+                <dd>Anything that can’t be deleted for everyone is left alone.</dd>
+              </div>
+            </dl>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="safety" class="section" aria-labelledby="safety-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="kicker">02 — Run</p>
+          <h2 id="safety-title" class="display">Careful by default.</h2>
+          <p class="section-lede">A bulk delete should be easy to stop and easy to follow. Every run is confirmed twice, can be halted instantly, and reports exactly what happened.</p>
+        </header>
+
+        <figure class="wide-shot">
+          <div class="shot">
+            <div class="shot-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+            <picture>
+              <source srcset="assets/shot-deleting.webp" type="image/webp">
+              <img src="assets/shot-deleting.png" width="1280" height="800" loading="lazy" decoding="async" alt="A deletion run in progress. A banner asks you not to use the page in the meantime and to press Esc or click Stop to cancel; the conversation being processed is highlighted in yellow; the panel shows “5/14 · 4 done · 1 skipped · 0 failed”, a Stop button and a timestamped log.">
+            </picture>
+          </div>
+          <figcaption><span class="fig">Fig. 3</span> <span>A run in progress: live counts, a Stop button and a log of every item.</span></figcaption>
+        </figure>
+
+        <ul class="facts facts--3" role="list">
+          <li>
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-double-check"/></svg>
+            <h3>Two-step confirm</h3>
+            <p>Nothing is deleted until you click the red delete button a second time.</p>
+          </li>
+          <li>
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-stop"/></svg>
+            <h3>Stop at any moment</h3>
+            <p>An overlay blocks stray clicks while it works. Press <kbd>Esc</kbd> or click <strong>Stop</strong> to halt.</p>
+          </li>
+          <li>
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg>
+            <h3>Sensible pacing</h3>
+            <p>800&nbsp;ms between items by default, with random jitter. For big batches, don’t set it much lower, or X may rate-limit you.</p>
+          </li>
+          <li>
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-pause"/></svg>
+            <h3>Pauses when hidden</h3>
+            <p>Keep the tab in front. If it goes to the background or the window is covered, the run waits and carries on when you return.</p>
+          </li>
+          <li>
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-retry"/></svg>
+            <h3>Failures stay ticked</h3>
+            <p>Anything that fails is marked red and stays selected, ready to retry. Three failures in a row stop the run.</p>
+          </li>
+          <li>
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-log"/></svg>
+            <h3>A clear record</h3>
+            <p>The panel counts what’s done, skipped and failed, and keeps a timestamped log of each item.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="section" aria-labelledby="how-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="kicker">03 — How it works</p>
+          <h2 id="how-title" class="display">It clicks what you would&nbsp;click.</h2>
+          <p class="section-lede">X’s DMs now run on X Chat, which is end-to-end encrypted: every deletion has to be signed by your own client. There’s no API shortcut — so the extension works through X’s own menus in your browser, one item at a time, exactly as you would by hand.</p>
+        </header>
+
+        <div class="paths">
+          <div class="path">
+            <p class="path-label">For each message</p>
+            <ol class="path-steps" role="list">
+              <li><span class="key">More</span></li>
+              <li><span class="key key--danger">Delete</span></li>
+              <li><span class="key">For me</span> <span class="path-or">or</span> <span class="key">For everyone</span></li>
+            </ol>
+          </div>
+          <div class="path">
+            <p class="path-label">For each conversation</p>
+            <ol class="path-steps" role="list">
+              <li><span class="key">Right-click</span></li>
+              <li><span class="key key--danger">Delete conversation</span></li>
+              <li><span class="key">Confirm</span></li>
+            </ol>
+          </div>
+        </div>
+
+        <ul class="facts facts--3" role="list">
+          <li>
+            <h3>Built on X Chat’s own markers</h3>
+            <p>X Chat renders inside a shadow DOM. The element markers (such as <code>data-testid</code>) and button labels the extension looks for are taken from X Chat’s front-end code itself.</p>
+          </li>
+          <li>
+            <h3>Reads 42 interface languages</h3>
+            <p>It recognises X Chat’s menu labels in all 42 of its interface languages, so it keeps working whichever one your X is set to.</p>
+          </li>
+          <li>
+            <h3>Panel in English or Chinese</h3>
+            <p>The panel follows X’s interface language, falling back to your browser’s. Switch it any time under <strong>Language</strong>.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="privacy" class="section" aria-labelledby="privacy-title">
+      <div class="wrap privacy-layout">
+        <header class="section-head">
+          <p class="kicker">04 — Privacy</p>
+          <h2 id="privacy-title" class="display">Nothing leaves your browser.</h2>
+          <p class="section-lede">No server, no account, no analytics. Here is exactly what the extension and the userscript touch — straight from the privacy policy.</p>
+          <p class="link-row">
+            <a class="link-arrow" href="https://github.com/LLLn-J/x-dm-bulk-delete/blob/main/PRIVACY.md">Read the privacy policy</a>
+            <a class="link-arrow" href="https://github.com/LLLn-J/x-dm-bulk-delete">Audit the source</a>
+          </p>
+        </header>
+
+        <dl class="spec">
+          <div>
+            <dt>Runs on</dt>
+            <dd>Only <code>x.com</code> and <code>twitter.com</code>. The panel appears only on the messages page, <code>x.com/i/chat</code>.</dd>
+          </div>
+          <div>
+            <dt>Reads</dt>
+            <dd>The page’s internal IDs for your conversations and messages (conversation IDs are made of the participants’ numeric user IDs), where they sit on the page, and whether you sent each message — just enough to delete what you ticked. <strong>It doesn’t read or store message text.</strong></dd>
+          </div>
+          <div>
+            <dt>Holds</dt>
+            <dd>That information stays in the page’s memory, is used only for the deletions you start, and is gone when you close or reload the tab.</dd>
+          </div>
+          <div>
+            <dt>Saves</dt>
+            <dd>Only your panel settings — delete mode, delay, panel position — in <code>chrome.storage.local</code> (<code>localStorage</code> for the userscript). Nothing is synced anywhere.</dd>
+          </div>
+          <div>
+            <dt>Sends</dt>
+            <dd><strong>Nothing.</strong> No network requests, no analytics, ads or third-party services. Your data is never sent, sold or transferred — not to the author, not to anyone.</dd>
+          </div>
+          <div>
+            <dt>Permissions</dt>
+            <dd><code>storage</code>, for those settings, and nothing else. Site access is limited to x.com and twitter.com.</dd>
+          </div>
+          <div>
+            <dt>Diagnostics</dt>
+            <dd><strong>Copy diagnostics</strong> puts page-structure counts and the run log on your clipboard, with IDs cut to their last few characters and no message content. Whether to share it is up to you.</dd>
+          </div>
+          <div>
+            <dt>This site</dt>
+            <dd>No cookies, analytics, third-party scripts or web fonts; everything on this page is served from its own host, GitHub Pages, which keeps its own server logs.</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section id="before-you-start" class="caution" aria-labelledby="caution-title">
+      <div class="wrap">
+        <p class="kicker">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-alert"/></svg>
+          Read this before you start
+        </p>
+        <h2 id="caution-title" class="display">Deleting is permanent.<br>Back up first.</h2>
+        <ol class="caution-grid" role="list">
+          <li>
+            <h3>There’s no undo</h3>
+            <p>Deleted messages and conversations can’t be brought back. The extension makes no backups and keeps no copy of anything it removes.</p>
+          </li>
+          <li>
+            <h3>Save what matters first</h3>
+            <p>If you might need something later, save it before a bulk run — for example, request your X data archive under <strong>Settings → Your account → Download an archive of your data</strong>, and check that it contains what you need.</p>
+          </li>
+          <li>
+            <h3>Others keep their copies</h3>
+            <p>“For me” deletions and deleted conversations only leave <em>your</em> account; the other people still see them. “For everyone” only works on messages you sent (group admins can also remove others’ messages in groups they manage).</p>
+          </li>
+        </ol>
+        <p class="caution-foot">DM Bulk Delete is an independent tool provided as is, under the MIT License. It isn’t an X product, and X can change its interface at any time.</p>
+      </div>
+    </section>
+
+    <section id="install" class="section section--flush" aria-labelledby="install-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="kicker">05 — Install</p>
+          <h2 id="install-title" class="display">Pick your install.</h2>
+          <p class="section-lede">Same panel, whichever route you choose. It’s free, and the code is on GitHub.</p>
+        </header>
+
+        <div class="install-grid">
+          <article class="install-card install-card--featured" id="install-userscript" aria-labelledby="install-userscript-title">
+            <div class="install-top">
+              <h3 id="install-userscript-title">Userscript</h3>
+              <span class="status status--ok">Available</span>
+            </div>
+            <p>For Chrome, Edge, Firefox and Safari, through a userscript manager.</p>
+            <ol class="install-steps">
+              <li>Install <a href="https://www.tampermonkey.net/">Tampermonkey</a> or <a href="https://violentmonkey.github.io/">Violentmonkey</a>.</li>
+              <li>Open the script on Greasy Fork and click <strong>Install this script</strong>.</li>
+              <li>Confirm in your manager, which keeps the script up to date.</li>
+            </ol>
+            <p class="note">In Chrome and Edge, the manager may first ask you to allow user scripts — follow its instructions.</p>
+            <div class="install-action">
+              <a class="btn btn--primary btn--block" href="https://greasyfork.org/en/scripts/604053-dm-bulk-delete-for-x">
+                Install from Greasy Fork
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <article class="install-card" id="install-chrome" aria-labelledby="install-chrome-title">
+            <div class="install-top">
+              <h3 id="install-chrome-title">Chrome Web Store</h3>
+              <span class="status status--pending" data-cws-pending>Pending review</span>
+              <span class="status status--ok" data-cws-live hidden>Available</span>
+            </div>
+            <p data-cws-pending>The extension has been submitted and is waiting for Chrome Web Store review. Its link will appear here once it’s listed; until then, use the userscript or load it unpacked.</p>
+            <p data-cws-live hidden>Install it in one click and let Chrome keep it up to date. The only permission it asks for is <code>storage</code>.</p>
+            <div class="install-action">
+              <span class="btn btn--pending btn--block" data-cws-pending>Not listed yet</span>
+              <a class="btn btn--primary btn--block" href="#install" data-cws-link data-cws-live hidden>
+                Add to Chrome
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <article class="install-card" id="install-manual" aria-labelledby="install-manual-title">
+            <div class="install-top">
+              <h3 id="install-manual-title">Load unpacked</h3>
+              <span class="status">Manual</span>
+            </div>
+            <p>For Chrome and other Chromium-based browsers.</p>
+            <ol class="install-steps">
+              <li>Download the latest <code>.zip</code> from GitHub Releases and unzip it.</li>
+              <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
+              <li>Click <strong>Load unpacked</strong> and choose the unzipped folder.</li>
+            </ol>
+            <p class="note">Unpacked installs don’t update themselves; check Releases for new versions.</p>
+            <div class="install-action">
+              <a class="btn btn--secondary btn--block" href="https://github.com/LLLn-J/x-dm-bulk-delete/releases/latest">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>
+                Download from Releases
+              </a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="use" class="section" aria-labelledby="use-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="kicker">06 — Use</p>
+          <h2 id="use-title" class="display">Four steps, then let it&nbsp;run.</h2>
+        </header>
+        <ol class="steps" role="list">
+          <li>
+            <h3>Open your messages</h3>
+            <p>Go to <code>x.com/i/chat</code>. The DM Bulk Delete panel appears at the top right.</p>
+          </li>
+          <li>
+            <h3>Pick a mode</h3>
+            <p>Choose <strong>Conversations</strong> or <strong>Messages</strong>, then click <strong>Start selecting</strong>.</p>
+          </li>
+          <li>
+            <h3>Tick what goes</h3>
+            <p>Click rows to tick them, Shift-click for a range, or use <strong>Select all shown</strong> or <strong>Load all &amp; select</strong>.</p>
+          </li>
+          <li>
+            <h3>Delete, then confirm</h3>
+            <p>Click the red delete button, then click it again to confirm. Keep the tab in front until it’s done; <kbd>Esc</kbd> stops it.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="faq" class="section" aria-labelledby="faq-title">
+      <div class="wrap faq-layout">
+        <header class="section-head">
+          <p class="kicker">07 — FAQ</p>
+          <h2 id="faq-title" class="display">Questions, answered.</h2>
+          <p class="section-lede">Something else? <a href="https://github.com/LLLn-J/x-dm-bulk-delete/issues">Ask on GitHub Issues</a>.</p>
+        </header>
+
+        <div class="faq">
+          <details>
+            <summary>Is this made by X?</summary>
+            <div class="answer">
+              <p>No. DM Bulk Delete is an independent open-source project. It isn’t affiliated with or endorsed by X&nbsp;Corp., and “X” is a trademark of X&nbsp;Corp.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Can I undo a deletion?</summary>
+            <div class="answer">
+              <p>No. The extension can’t restore anything it has deleted, and it keeps no copy. Save whatever you want to keep before you start — see <a href="#before-you-start">Read this before you start</a>.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Will the other person still see the messages?</summary>
+            <div class="answer">
+              <p>If you delete “for me”, or delete a whole conversation, yes — it disappears only from your account. “For everyone” removes messages you sent for everyone in the chat; X doesn’t let you delete other people’s messages for everyone, except group admins in groups they manage.</p>
+            </div>
+          </details>
+          <details>
+            <summary>What happens to group chats?</summary>
+            <div class="answer">
+              <p>On X, deleting a group conversation means leaving the group. So group chats are skipped unless you tick <strong>Also delete group chats (leaves them)</strong> in the panel.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Does it work on message requests?</summary>
+            <div class="answer">
+              <p>Yes. Conversations mode works in the <strong>Message requests</strong> list as well as in your inbox.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Why does the tab need to stay in front?</summary>
+            <div class="answer">
+              <p>It works through X’s real interface, which has to be on screen. If the tab goes to the background or the window is covered, the run pauses and continues when you come back.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Can I make it go faster?</summary>
+            <div class="answer">
+              <p>You can change <strong>Delay per item</strong> in the panel; the default is 800&nbsp;ms with random jitter. For large batches, keep it at the default or higher so X doesn’t start rate-limiting you.</p>
+            </div>
+          </details>
+          <details>
+            <summary>It stopped working after an X update. What now?</summary>
+            <div class="answer">
+              <p>X changes its interface from time to time. Click <strong>Copy diagnostics</strong> at the bottom of the panel and paste it into a <a href="https://github.com/LLLn-J/x-dm-bulk-delete/issues/new/choose">new GitHub issue</a>. It contains only page-structure counts and the log — no message content.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Which languages does it support?</summary>
+            <div class="answer">
+              <p>The panel is in English or Chinese. It follows X’s interface language (or your browser’s) and can be switched under <strong>Language</strong>. Behind the scenes, it recognises X Chat’s menu labels in all 42 interface languages.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Does it cost anything?</summary>
+            <div class="answer">
+              <p>No. It’s free and open source under the <a href="https://github.com/LLLn-J/x-dm-bulk-delete/blob/main/LICENSE">MIT License</a>.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="./">
+          <img src="assets/icon-128.png" width="32" height="32" alt="">
+          <span>DM Bulk Delete <span class="brand-for">for X</span></span>
+        </a>
+        <p>Bulk-delete X DMs, right in your browser.</p>
+      </div>
+      <nav aria-labelledby="footer-install">
+        <h2 id="footer-install" class="footer-heading">Install</h2>
+        <ul role="list">
+          <li><a href="https://greasyfork.org/en/scripts/604053-dm-bulk-delete-for-x">Greasy Fork</a></li>
+          <li data-cws-pending>Chrome Web Store <span class="footer-muted">(pending review)</span></li>
+          <li data-cws-live hidden><a href="#install" data-cws-link>Chrome Web Store</a></li>
+          <li><a href="https://github.com/LLLn-J/x-dm-bulk-delete/releases/latest">GitHub Releases</a></li>
+        </ul>
+      </nav>
+      <nav aria-labelledby="footer-project">
+        <h2 id="footer-project" class="footer-heading">Project</h2>
+        <ul role="list">
+          <li><a href="https://github.com/LLLn-J/x-dm-bulk-delete">Source code</a></li>
+          <li><a href="https://github.com/LLLn-J/x-dm-bulk-delete/blob/main/CHANGELOG.md">Changelog</a></li>
+          <li><a href="https://github.com/LLLn-J/x-dm-bulk-delete/issues">Issues</a></li>
+          <li><a href="https://github.com/LLLn-J/x-dm-bulk-delete#readme" hreflang="zh-CN" lang="zh-CN">中文说明</a></li>
+        </ul>
+      </nav>
+      <nav aria-labelledby="footer-legal">
+        <h2 id="footer-legal" class="footer-heading">Legal</h2>
+        <ul role="list">
+          <li><a href="https://github.com/LLLn-J/x-dm-bulk-delete/blob/main/PRIVACY.md">Privacy policy</a></li>
+          <li><a href="https://github.com/LLLn-J/x-dm-bulk-delete/blob/main/LICENSE">MIT License</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="wrap">
+      <div class="footer-legal">
+        <p>Not affiliated with or endorsed by X&nbsp;Corp. “X” is a trademark of X&nbsp;Corp.</p>
+        <p>This site sets no cookies and loads nothing from third parties.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
