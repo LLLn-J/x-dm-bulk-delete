@@ -1108,6 +1108,41 @@ figcaption {
   color: var(--green-ink);
 }
 
+/* Star on GitHub: a plain link to the repository, where visitors star it with their own account. */
+.star-cta {
+  display: grid;
+  gap: 1rem 1.5rem;
+  margin-top: 1.25rem;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+}
+
+.star-cta-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.star-cta h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.star-cta p {
+  max-width: 40rem;
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+@media (min-width: 760px) {
+  .star-cta {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
 /* ---------- 06 Use ---------- */
 
 .steps {
