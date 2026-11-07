@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-cws="live">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -47,12 +47,13 @@
     "url": "https://llln-j.github.io/x-dm-bulk-delete/",
     "image": "https://llln-j.github.io/x-dm-bulk-delete/assets/og-image.png",
     "screenshot": "https://llln-j.github.io/x-dm-bulk-delete/assets/shot-conversations.png",
-    "installUrl": "https://greasyfork.org/en/scripts/604053-dm-bulk-delete-for-x",
+    "installUrl": "https://chromewebstore.google.com/detail/dm-bulk-delete-for-x/ohiiccddhenbgfbgachigngnggjcgoeo",
     "downloadUrl": "https://github.com/LLLn-J/x-dm-bulk-delete/releases/latest",
     "license": "https://github.com/LLLn-J/x-dm-bulk-delete/blob/main/LICENSE",
     "isAccessibleForFree": true,
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
     "sameAs": [
+      "https://chromewebstore.google.com/detail/dm-bulk-delete-for-x/ohiiccddhenbgfbgachigngnggjcgoeo",
       "https://github.com/LLLn-J/x-dm-bulk-delete",
       "https://greasyfork.org/en/scripts/604053-dm-bulk-delete-for-x"
     ]
@@ -115,11 +116,11 @@
                 <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>
                 Install userscript <span class="btn-meta">Greasy Fork</span>
               </a>
-              <span class="btn btn--pending" data-cws-pending>
+              <span class="btn btn--pending" data-cws-pending hidden>
                 <span class="pending-dot" aria-hidden="true"></span>
                 Chrome Web Store <span class="btn-meta">pending review</span>
               </span>
-              <a class="btn btn--secondary" href="#install" data-cws-link data-cws-live hidden>
+              <a class="btn btn--secondary" href="https://chromewebstore.google.com/detail/dm-bulk-delete-for-x/ohiiccddhenbgfbgachigngnggjcgoeo" data-cws-link data-cws-live>
                 Add to Chrome <span class="btn-meta">Chrome Web Store</span>
               </a>
             </div>
@@ -346,7 +347,7 @@
           </div>
           <div>
             <dt>Permissions</dt>
-            <dd><code>storage</code>, for those settings, and nothing else. Site access is limited to x.com and twitter.com.</dd>
+            <dd><code>storage</code> is the only declared permission, for those settings. The content script runs only on <code>x.com</code> and <code>twitter.com</code>.</dd>
           </div>
           <div>
             <dt>Diagnostics</dt>
@@ -417,14 +418,14 @@
           <article class="install-card" id="install-chrome" aria-labelledby="install-chrome-title">
             <div class="install-top">
               <h3 id="install-chrome-title">Chrome Web Store</h3>
-              <span class="status status--pending" data-cws-pending>Pending review</span>
-              <span class="status status--ok" data-cws-live hidden>Available</span>
+              <span class="status status--pending" data-cws-pending hidden>Pending review</span>
+              <span class="status status--ok" data-cws-live>Available</span>
             </div>
-            <p data-cws-pending>The extension has been submitted and is waiting for Chrome Web Store review. Its link will appear here once it’s listed; until then, use the userscript or load it unpacked.</p>
-            <p data-cws-live hidden>Install it in one click and let Chrome keep it up to date. The only permission it asks for is <code>storage</code>.</p>
+            <p data-cws-pending hidden>The extension has been submitted and is waiting for Chrome Web Store review. Its link will appear here once it’s listed; until then, use the userscript or load it unpacked.</p>
+            <p data-cws-live>Install it in one click and let Chrome keep it up to date. The extension’s only declared permission is <code>storage</code>, for panel settings; it also runs only on <code>x.com</code> and <code>twitter.com</code>.</p>
             <div class="install-action">
-              <span class="btn btn--pending btn--block" data-cws-pending>Not listed yet</span>
-              <a class="btn btn--primary btn--block" href="#install" data-cws-link data-cws-live hidden>
+              <span class="btn btn--pending btn--block" data-cws-pending hidden>Not listed yet</span>
+              <a class="btn btn--primary btn--block" href="https://chromewebstore.google.com/detail/dm-bulk-delete-for-x/ohiiccddhenbgfbgachigngnggjcgoeo" data-cws-link data-cws-live>
                 Add to Chrome
                 <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg>
               </a>
@@ -470,7 +471,7 @@
       <div class="wrap">
         <header class="section-head">
           <p class="kicker">06 — Use</p>
-          <h2 id="use-title" class="display">Four steps, then let it&nbsp;run.</h2>
+          <h2 id="use-title" class="display">How to bulk delete X / Twitter DMs</h2>
         </header>
         <ol class="steps" role="list">
           <li>
@@ -580,8 +581,8 @@
         <h2 id="footer-install" class="footer-heading">Install</h2>
         <ul role="list">
           <li><a href="https://greasyfork.org/en/scripts/604053-dm-bulk-delete-for-x">Greasy Fork</a></li>
-          <li data-cws-pending>Chrome Web Store <span class="footer-muted">(pending review)</span></li>
-          <li data-cws-live hidden><a href="#install" data-cws-link>Chrome Web Store</a></li>
+          <li data-cws-pending hidden>Chrome Web Store <span class="footer-muted">(pending review)</span></li>
+          <li data-cws-live><a href="https://chromewebstore.google.com/detail/dm-bulk-delete-for-x/ohiiccddhenbgfbgachigngnggjcgoeo" data-cws-link>Chrome Web Store</a></li>
           <li><a href="https://github.com/LLLn-J/x-dm-bulk-delete/releases/latest">GitHub Releases</a></li>
         </ul>
       </nav>
